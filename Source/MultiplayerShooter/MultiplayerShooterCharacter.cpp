@@ -66,6 +66,7 @@ AMultiplayerShooterCharacter::AMultiplayerShooterCharacter():
 	{
 		OnlineSessionInterface = OnlineSubsystem->GetSessionInterface();
 
+		/*
 		if(GEngine)
 		{
 			GEngine->AddOnScreenDebugMessage(
@@ -76,6 +77,7 @@ AMultiplayerShooterCharacter::AMultiplayerShooterCharacter():
 				*OnlineSubsystem->GetSubsystemName().ToString())
 				);
 		}
+		*/
 	}
 }
 
