@@ -11,9 +11,6 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "Kismet/GameplayStatics.h"
-#include "OnlineSessionSettings.h"
-#include "OnlineSubsystem.h"
-#include "Online/OnlineSessionNames.h"
 
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
@@ -21,10 +18,7 @@ DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 //////////////////////////////////////////////////////////////////////////
 // AMultiplayerShooterCharacter
 
-AMultiplayerShooterCharacter::AMultiplayerShooterCharacter():
-	CreateSessionCompleteDelegate(FOnCreateSessionCompleteDelegate::CreateUObject(this, &ThisClass::OnCreateSessionComplete)),
-	FindSessionsCompleteDelegate(FOnFindSessionsCompleteDelegate::CreateUObject(this, &ThisClass::OnFindSessionsComplete)),
-	JoinSessionCompleteDelegate(FOnJoinSessionCompleteDelegate::CreateUObject(this, &ThisClass::OnJoinSessionComplete))
+AMultiplayerShooterCharacter::AMultiplayerShooterCharacter()
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -60,25 +54,6 @@ AMultiplayerShooterCharacter::AMultiplayerShooterCharacter():
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
-
-	IOnlineSubsystem* OnlineSubsystem = IOnlineSubsystem::Get();
-	if(OnlineSubsystem)
-	{
-		OnlineSessionInterface = OnlineSubsystem->GetSessionInterface();
-
-		/*
-		if(GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(
-				-1,
-				15.f,
-				FColor::Blue,
-				FString::Printf(TEXT("Found Subsystem %s"),
-				*OnlineSubsystem->GetSubsystemName().ToString())
-				);
-		}
-		*/
-	}
 }
 
 void AMultiplayerShooterCharacter::BeginPlay()
@@ -92,178 +67,6 @@ void AMultiplayerShooterCharacter::BeginPlay()
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
-		}
-	}
-}
-
-void AMultiplayerShooterCharacter::OpenLobby()
-{
-	UWorld* World = GetWorld();
-
-	if(World)
-	{
-		World->ServerTravel("/Game/ThirdPerson/Maps/Lobby?listen");
-	}
-}
-
-void AMultiplayerShooterCharacter::CallOpenLevel(const FString& Address)
-{
-	UGameplayStatics::OpenLevel(this, *Address);
-}
-
-void AMultiplayerShooterCharacter::CallClientTravel(const FString& Address)
-{
-	APlayerController* PlayerController = GetGameInstance()->GetFirstLocalPlayerController();
-
-	if(PlayerController)
-	{
-		PlayerController->ClientTravel(Address, TRAVEL_Absolute);
-	}
-}
-
-void AMultiplayerShooterCharacter::CreateGameSession()
-{
-	// Called when pressing the 1 key
-	if(!OnlineSessionInterface.IsValid())
-	{
-		return;
-	}
-
-	auto ExistingSession = OnlineSessionInterface->GetNamedSession(NAME_GameSession);
-	if(ExistingSession != nullptr)
-	{
-		OnlineSessionInterface->DestroySession(NAME_GameSession);
-	}
-
-	OnlineSessionInterface->AddOnCreateSessionCompleteDelegate_Handle(CreateSessionCompleteDelegate);
-
-	TSharedPtr<FOnlineSessionSettings> SessionSettings = MakeShareable(new FOnlineSessionSettings());
-	SessionSettings->bIsLANMatch = false;
-	SessionSettings->NumPublicConnections = 4;
-	SessionSettings->bAllowJoinInProgress = true;
-	SessionSettings->bAllowJoinViaPresence = true;
-	SessionSettings->bShouldAdvertise = true;
-	SessionSettings->bUsesPresence = true;
-	SessionSettings->bUseLobbiesIfAvailable = true;
-	SessionSettings->Set(FName("MatchType"), FString("FreeForAll"), EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
-	const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
-	OnlineSessionInterface->CreateSession(*LocalPlayer->GetPreferredUniqueNetId(), NAME_GameSession, *SessionSettings);
-}
-
-void AMultiplayerShooterCharacter::JoinGameSession()
-{
-	if(!OnlineSessionInterface.IsValid())
-		return;
-
-	OnlineSessionInterface->AddOnFindSessionsCompleteDelegate_Handle(FindSessionsCompleteDelegate);
-	
-	SessionSearch = MakeShareable(new FOnlineSessionSearch());
-	SessionSearch->MaxSearchResults = 10000;
-	SessionSearch->bIsLanQuery = false;
-	SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals);
-	
-	const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
-	OnlineSessionInterface->FindSessions(*LocalPlayer->GetPreferredUniqueNetId(), SessionSearch.ToSharedRef());
-}
-
-void AMultiplayerShooterCharacter::OnCreateSessionComplete(FName SessionName, bool bWasSuccessful)
-{
-	if(bWasSuccessful)
-	{
-		if(GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(
-				-1,
-				15.f,
-				FColor::Blue,
-				FString::Printf(TEXT("Created Session: %s"), *SessionName.ToString())
-				);
-		}
-
-		UWorld* world = GetWorld();
-		if(world)
-		{
-			world->ServerTravel(FString("/Game/ThirdPerson/Maps/Lobby?listen"));
-		}
-	}
-	else
-	{
-		if(GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(
-				-1,
-				15.f,
-				FColor::Red,
-				FString::Printf(TEXT("Failed To Create Session!"))
-				);
-		}
-	}
-}
-
-void AMultiplayerShooterCharacter::OnFindSessionsComplete(bool bWasSuccessful)
-{
-	if(!OnlineSessionInterface.IsValid())
-	{
-		return;
-	}
-	
-	for (auto Result : SessionSearch->SearchResults)
-	{
-		FString Id = Result.GetSessionIdStr();
-		FString User = Result.Session.OwningUserName;
-		FString MatchType;
-		Result.Session.SessionSettings.Get(FName("MatchType"), MatchType);
-		
-		if(GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(
-				-1,
-				15.f,
-				FColor::Cyan,
-				FString::Printf(TEXT("Id: %s, User: %s"), *Id, *User)
-				);
-		}
-
-		if(MatchType == FString("FreeForAll"))
-		{
-			GEngine->AddOnScreenDebugMessage(
-				-1,
-				15.f,
-				FColor::Cyan,
-				FString::Printf(TEXT("Joining Match Type %s"), *MatchType)
-				);
-
-			OnlineSessionInterface->AddOnJoinSessionCompleteDelegate_Handle(JoinSessionCompleteDelegate);
-
-			const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
-			OnlineSessionInterface->JoinSession(*LocalPlayer->GetPreferredUniqueNetId(), NAME_GameSession, Result);
-		}
-	}
-}
-
-void AMultiplayerShooterCharacter::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
-{
-	if(!OnlineSessionInterface.IsValid())
-		return;
-
-	FString Address;
-	
-	if(OnlineSessionInterface->GetResolvedConnectString(NAME_GameSession, Address))
-	{
-		if(GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(
-				-1,
-				15.f,
-				FColor::Cyan,
-				FString::Printf(TEXT("Connect String: %s"), *Address)
-				);
-		}
-
-		APlayerController* PlayerController = GetGameInstance()->GetFirstLocalPlayerController();
-		if(PlayerController)
-		{
-			PlayerController->ClientTravel(Address, TRAVEL_Absolute);
 		}
 	}
 }
@@ -285,6 +88,9 @@ void AMultiplayerShooterCharacter::SetupPlayerInputComponent(UInputComponent* Pl
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMultiplayerShooterCharacter::Look);
+
+		// Aiming
+		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Triggered, this, &ThisClass::Aim);
 	}
 	else
 	{
@@ -326,4 +132,9 @@ void AMultiplayerShooterCharacter::Look(const FInputActionValue& Value)
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
+}
+
+void AMultiplayerShooterCharacter::Aim(const FInputActionValue& Value)
+{
+	bIsAiming = Value.Get<bool>();
 }

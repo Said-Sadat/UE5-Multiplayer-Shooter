@@ -3,9 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "OnlineSubsystem.h"
 #include "GameFramework/Character.h"
-#include "Interfaces/OnlineSessionInterface.h"
 #include "Logging/LogMacros.h"
 #include "MultiplayerShooterCharacter.generated.h"
 
@@ -46,6 +44,13 @@ class AMultiplayerShooterCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
 
+	/** Aim Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* AimAction;
+
+
+	bool bIsAiming;
+
 public:
 	AMultiplayerShooterCharacter();
 	
@@ -57,6 +62,9 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
+
+	/** Called for aiming input */
+	void Aim(const FInputActionValue& Value);
 			
 
 protected:
@@ -72,37 +80,8 @@ public:
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
-	UFUNCTION(BlueprintCallable)
-	void OpenLobby();
-
-	UFUNCTION(BlueprintCallable)
-	void CallOpenLevel(const FString& Address);
-
-	UFUNCTION(BlueprintCallable)
-	void CallClientTravel(const FString& Address);
-
-public:
-
-	// Pointer to Online Session Interface
-	IOnlineSessionPtr OnlineSessionInterface;
-
-protected:
 	
+	/** Returns Aim Boolean **/
 	UFUNCTION(BlueprintCallable)
-	void CreateGameSession();
-
-	UFUNCTION(BlueprintCallable)
-	void JoinGameSession();
-
-	void OnCreateSessionComplete(FName SessionName, bool bWasSuccessful);
-	void OnFindSessionsComplete(bool bWasSuccessful);
-	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
-
-private:
-	
-	FOnCreateSessionCompleteDelegate CreateSessionCompleteDelegate;
-	FOnFindSessionsCompleteDelegate FindSessionsCompleteDelegate;
-	TSharedPtr<FOnlineSessionSearch> SessionSearch;
-	FOnJoinSessionCompleteDelegate JoinSessionCompleteDelegate;
+	FORCEINLINE bool GetIsAiming() const { return bIsAiming; }
 };
-
