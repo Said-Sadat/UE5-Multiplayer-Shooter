@@ -46,6 +46,9 @@ class AMultiplayerShooterCharacter : public ACharacter
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* EquipAction;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* CrouchAction;
 
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
 	class AWeapon* OverlappingWeapon;
@@ -72,6 +75,7 @@ protected:
 	void Look(const FInputActionValue& Value);
 	void Aim(const FInputActionValue& Value);
 	void Equip(const FInputActionValue& Value);
+	void CrouchButtonPressed(const FInputActionValue& Value);
 			
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	

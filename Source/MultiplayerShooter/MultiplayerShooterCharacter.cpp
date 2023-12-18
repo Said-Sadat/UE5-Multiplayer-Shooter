@@ -62,6 +62,8 @@ AMultiplayerShooterCharacter::AMultiplayerShooterCharacter()
 	
 	Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("Combat Component"));
 	Combat->SetIsReplicated(true);
+
+	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 }
 
 void AMultiplayerShooterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -116,6 +118,7 @@ void AMultiplayerShooterCharacter::SetupPlayerInputComponent(UInputComponent* Pl
 		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Triggered, this, &ThisClass::Aim);
 
 		EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Triggered, this, &ThisClass::Equip);
+		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &ThisClass::CrouchButtonPressed);
 	}
 	else
 	{
@@ -161,8 +164,6 @@ void AMultiplayerShooterCharacter::Look(const FInputActionValue& Value)
 
 void AMultiplayerShooterCharacter::Aim(const FInputActionValue& Value)
 {
-	
-
 	if(HasAuthority())
 	{
 		bIsAiming = Value.Get<bool>();
@@ -185,6 +186,18 @@ void AMultiplayerShooterCharacter::Equip(const FInputActionValue& Value)
 		{
 			ServerEquipButtonPressed();
 		}
+	}
+}
+
+void AMultiplayerShooterCharacter::CrouchButtonPressed(const FInputActionValue& Value)
+{
+	if(bIsCrouched)
+	{
+		UnCrouch();
+	}
+	else
+	{
+		Crouch();
 	}
 }
 
