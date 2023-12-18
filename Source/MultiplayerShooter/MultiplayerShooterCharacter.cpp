@@ -58,6 +58,8 @@ AMultiplayerShooterCharacter::AMultiplayerShooterCharacter()
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 
+	bReplicates = true;
+	
 	Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("Combat Component"));
 	Combat->SetIsReplicated(true);
 }
@@ -67,6 +69,7 @@ void AMultiplayerShooterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimePr
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(AMultiplayerShooterCharacter, OverlappingWeapon, COND_OwnerOnly);
+	DOREPLIFETIME(AMultiplayerShooterCharacter, bIsAiming);
 }
 
 void AMultiplayerShooterCharacter::PostInitializeComponents()
@@ -158,7 +161,16 @@ void AMultiplayerShooterCharacter::Look(const FInputActionValue& Value)
 
 void AMultiplayerShooterCharacter::Aim(const FInputActionValue& Value)
 {
-	bIsAiming = Value.Get<bool>();
+	
+
+	if(HasAuthority())
+	{
+		bIsAiming = Value.Get<bool>();
+	}
+	else
+	{
+		ServerAimingButtonPressed(Value.Get<bool>());
+	}
 }
 
 void AMultiplayerShooterCharacter::Equip(const FInputActionValue& Value)
@@ -205,6 +217,11 @@ void AMultiplayerShooterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 	{
 		LastWeapon->ShowPickupWidget(false);
 	}
+}
+
+void AMultiplayerShooterCharacter::ServerAimingButtonPressed_Implementation(bool isAiming)
+{
+	bIsAiming = isAiming;
 }
 
 void AMultiplayerShooterCharacter::ServerEquipButtonPressed_Implementation()

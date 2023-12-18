@@ -20,6 +20,7 @@ class AMultiplayerShooterCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
+	UPROPERTY(Replicated)
 	bool bIsAiming;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -83,5 +84,8 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
+
+	UFUNCTION(Server, Unreliable)
+	void ServerAimingButtonPressed(bool isAiming);
 
 };
