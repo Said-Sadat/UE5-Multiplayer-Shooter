@@ -164,13 +164,9 @@ void AMultiplayerShooterCharacter::Look(const FInputActionValue& Value)
 
 void AMultiplayerShooterCharacter::Aim(const FInputActionValue& Value)
 {
-	if(HasAuthority())
+	if(Combat)
 	{
-		bIsAiming = Value.Get<bool>();
-	}
-	else
-	{
-		ServerAimingButtonPressed(Value.Get<bool>());
+		Combat->SetAiming(Value.Get<bool>());
 	}
 }
 
@@ -219,6 +215,16 @@ void AMultiplayerShooterCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 	}
 }
 
+bool AMultiplayerShooterCharacter::IsWeaponEquipped()
+{
+	return (Combat && Combat->EquippedWeapon);
+}
+
+bool AMultiplayerShooterCharacter::GetIsAiming()
+{
+	return Combat && Combat->bIsAiming;
+}
+
 void AMultiplayerShooterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 {
 	if(OverlappingWeapon)
@@ -230,11 +236,6 @@ void AMultiplayerShooterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 	{
 		LastWeapon->ShowPickupWidget(false);
 	}
-}
-
-void AMultiplayerShooterCharacter::ServerAimingButtonPressed_Implementation(bool isAiming)
-{
-	bIsAiming = isAiming;
 }
 
 void AMultiplayerShooterCharacter::ServerEquipButtonPressed_Implementation()

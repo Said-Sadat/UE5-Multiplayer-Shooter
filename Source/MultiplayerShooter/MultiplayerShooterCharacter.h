@@ -63,9 +63,12 @@ public:
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
 	void SetOverlappingWeapon(AWeapon* Weapon);
+
+	UFUNCTION(BlueprintCallable)
+	bool IsWeaponEquipped();
 	
 	UFUNCTION(BlueprintCallable)
-	FORCEINLINE bool GetIsAiming() const { return bIsAiming; }
+	bool GetIsAiming();
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PostInitializeComponents() override;
@@ -88,8 +91,4 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
-
-	UFUNCTION(Server, Unreliable)
-	void ServerAimingButtonPressed(bool isAiming);
-
 };
