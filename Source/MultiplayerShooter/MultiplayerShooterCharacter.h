@@ -20,6 +20,11 @@ class AMultiplayerShooterCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
+	float AO_Yaw;
+	float AO_Pitch;
+	FRotator StartingAimRotation;
+	FTransform LeftHandTransform;
+
 	UPROPERTY(Replicated)
 	bool bIsAiming;
 
@@ -62,6 +67,12 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE float GetAO_Yaw() const { return AO_Yaw; }
+	
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE float GetAO_Pitch() const { return AO_Pitch; }
+
 	void SetOverlappingWeapon(AWeapon* Weapon);
 
 	UFUNCTION(BlueprintCallable)
@@ -69,6 +80,9 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	bool GetIsAiming();
+
+	UFUNCTION(BlueprintCallable)
+	FTransform GetLeftHandTransform();
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PostInitializeComponents() override;
@@ -79,6 +93,7 @@ protected:
 	void Aim(const FInputActionValue& Value);
 	void Equip(const FInputActionValue& Value);
 	void CrouchButtonPressed(const FInputActionValue& Value);
+	void AimOffset(float DeltaTime);
 			
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
@@ -91,4 +106,7 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
+
+	UFUNCTION(BlueprintCallable)
+	float GetYawOffset();
 };

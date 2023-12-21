@@ -32,12 +32,20 @@ protected:
 	UFUNCTION(Server, Reliable)
 	void ServerSetAiming(bool isAiming);
 
+	UFUNCTION()
+	void OnRep_EquippedWeapon();
+
 private:
 	AMultiplayerShooterCharacter* Character;
 
 	UPROPERTY(Replicated)
 	bool bIsAiming;
 	
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
 	AWeapon* EquippedWeapon;
+
+	UPROPERTY(EditAnywhere)
+	float BaseWalkSpeed;
+	UPROPERTY(EditAnywhere)
+	float AimWalkSpeed;
 };

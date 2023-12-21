@@ -10,6 +10,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "Weapon/Weapon.h"
 #include "WeaponComponents/CombatComponent.h"
@@ -100,6 +101,8 @@ void AMultiplayerShooterCharacter::BeginPlay()
 void AMultiplayerShooterCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+
+	AimOffset(DeltaSeconds);
 }
 
 // Input
@@ -197,6 +200,41 @@ void AMultiplayerShooterCharacter::CrouchButtonPressed(const FInputActionValue& 
 	}
 }
 
+void AMultiplayerShooterCharacter::AimOffset(float DeltaTime)
+{
+	if(Combat && Combat->EquippedWeapon == nullptr) return;
+	
+	FVector Velocity = GetVelocity();
+	Velocity.Z = 0;
+	float Speed = Velocity.Size();
+	bool isInAir = GetCharacterMovement()->IsFalling();
+
+	if(Speed == 0.f && !isInAir)
+	{
+		FRotator CurrentAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
+		FRotator DeltaAimRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimRotation, StartingAimRotation);
+		AO_Yaw = DeltaAimRotation.Yaw;
+		bUseControllerRotationYaw = false;
+	}
+
+	if(Speed > 0.f || isInAir)
+	{
+		StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
+		AO_Yaw = 0.f;
+		bUseControllerRotationYaw = true;
+	}
+
+	AO_Pitch = GetBaseAimRotation().Pitch;
+
+	if(AO_Pitch > 90.f && !IsLocallyControlled())
+	{
+		// map pitch from [270, 360) to [-90, 0)
+		FVector2d InRange(270.f, 360.f);
+		FVector2d OutRange(-90.f, 0.f);
+		AO_Pitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AO_Pitch);
+	}
+}
+
 void AMultiplayerShooterCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 {
 	if(OverlappingWeapon)
@@ -225,6 +263,23 @@ bool AMultiplayerShooterCharacter::GetIsAiming()
 	return Combat && Combat->bIsAiming;
 }
 
+FTransform AMultiplayerShooterCharacter::GetLeftHandTransform()
+{
+	if(Combat->EquippedWeapon && Combat->EquippedWeapon->GetWeaponMesh())
+	{
+		LeftHandTransform = Combat->EquippedWeapon->GetWeaponMesh()->GetSocketTransform(FName("LeftHandSocket"), RTS_World);
+		FVector OutPosition;
+		FRotator OutRotation;
+		GetMesh()->TransformToBoneSpace(FName("hand_r"), LeftHandTransform.GetLocation(), FRotator::ZeroRotator, OutPosition, OutRotation);
+		LeftHandTransform.SetLocation(OutPosition);
+		LeftHandTransform.SetRotation(FQuat(OutRotation));
+
+		return LeftHandTransform;
+	}
+
+	return FTransform();
+}
+
 void AMultiplayerShooterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 {
 	if(OverlappingWeapon)
@@ -236,6 +291,14 @@ void AMultiplayerShooterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 	{
 		LastWeapon->ShowPickupWidget(false);
 	}
+}
+
+float AMultiplayerShooterCharacter::GetYawOffset()
+{
+	FRotator AimRotation = GetBaseAimRotation();
+	FRotator MoveRotation = UKismetMathLibrary::MakeRotFromX(GetVelocity());
+
+	return UKismetMathLibrary::NormalizedDeltaRotator(MoveRotation, AimRotation).Yaw;
 }
 
 void AMultiplayerShooterCharacter::ServerEquipButtonPressed_Implementation()
