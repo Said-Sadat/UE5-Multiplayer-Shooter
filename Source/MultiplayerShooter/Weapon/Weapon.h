@@ -30,6 +30,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void Fire(const FVector& HitTarget);
 	
 	void ShowPickupWidget(bool bShowWidget);
 
@@ -64,4 +65,7 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
 	class UWidgetComponent* PickupWidget;
+
+	UPROPERTY(EditAnywhere, Category= "Weapon Properties")
+	class UAnimationAsset* FireAnimation;
 };

@@ -55,11 +55,17 @@ class AMultiplayerShooterCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* CrouchAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* FireAction;
+
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
 	class AWeapon* OverlappingWeapon;
 
 	UPROPERTY(VisibleAnywhere)
 	class UCombatComponent* Combat;
+
+	UPROPERTY(EditAnywhere, Category= Combat, meta=(AllowPrivateAccess = "true"))
+	class UAnimMontage* FireWeaponMontage;
 
 public:
 	AMultiplayerShooterCharacter();
@@ -74,6 +80,7 @@ public:
 	FORCEINLINE float GetAO_Pitch() const { return AO_Pitch; }
 
 	void SetOverlappingWeapon(AWeapon* Weapon);
+	void PlayFireMontage(bool isAiming);
 
 	UFUNCTION(BlueprintCallable)
 	bool IsWeaponEquipped();
@@ -91,6 +98,8 @@ protected:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	void Aim(const FInputActionValue& Value);
+	void FireButtonDown(const FInputActionValue& Value);
+	void FireButtonReleased(const FInputActionValue& Value);
 	void Equip(const FInputActionValue& Value);
 	void CrouchButtonPressed(const FInputActionValue& Value);
 	void AimOffset(float DeltaTime);

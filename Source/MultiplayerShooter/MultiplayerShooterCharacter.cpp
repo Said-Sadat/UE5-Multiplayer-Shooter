@@ -119,6 +119,8 @@ void AMultiplayerShooterCharacter::SetupPlayerInputComponent(UInputComponent* Pl
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMultiplayerShooterCharacter::Look);
 
 		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Triggered, this, &ThisClass::Aim);
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ThisClass::FireButtonDown);
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &ThisClass::FireButtonReleased);
 
 		EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Triggered, this, &ThisClass::Equip);
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &ThisClass::CrouchButtonPressed);
@@ -170,6 +172,22 @@ void AMultiplayerShooterCharacter::Aim(const FInputActionValue& Value)
 	if(Combat)
 	{
 		Combat->SetAiming(Value.Get<bool>());
+	}
+}
+
+void AMultiplayerShooterCharacter::FireButtonDown(const FInputActionValue& Value)
+{
+	if(Combat)
+	{
+		Combat->FireButtonPressed(true);
+	}
+}
+
+void AMultiplayerShooterCharacter::FireButtonReleased(const FInputActionValue& Value)
+{
+	if(Combat)
+	{
+		Combat->FireButtonPressed(false);
 	}
 }
 
@@ -251,6 +269,22 @@ void AMultiplayerShooterCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 			OverlappingWeapon->ShowPickupWidget(true);
 		}
 	}
+}
+
+void AMultiplayerShooterCharacter::PlayFireMontage(bool isAiming)
+{
+	if(Combat == nullptr || Combat->EquippedWeapon == nullptr) return;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
+	if(AnimInstance && FireWeaponMontage)
+	{
+		AnimInstance->Montage_Play(FireWeaponMontage);
+		FName SectionName;
+		SectionName = bIsAiming ? FName("RifleAim") : FName("RifleHip");
+		AnimInstance->Montage_JumpToSection(SectionName);
+	}
+	
 }
 
 bool AMultiplayerShooterCharacter::IsWeaponEquipped()
