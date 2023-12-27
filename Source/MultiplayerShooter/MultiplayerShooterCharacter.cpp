@@ -14,13 +14,13 @@
 #include "Net/UnrealNetwork.h"
 #include "Weapon/Weapon.h"
 #include "WeaponComponents/CombatComponent.h"
+#include "MultiplayerShooter.h"
 
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 //////////////////////////////////////////////////////////////////////////
 // AMultiplayerShooterCharacter
-
 
 AMultiplayerShooterCharacter::AMultiplayerShooterCharacter()
 {
@@ -44,6 +44,8 @@ AMultiplayerShooterCharacter::AMultiplayerShooterCharacter()
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
+
+	GetMesh()->SetCollisionObjectType(ECC_SkeletalMesh);
 
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
@@ -103,6 +105,7 @@ void AMultiplayerShooterCharacter::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 
 	AimOffset(DeltaSeconds);
+	HideCloseCharacter();
 }
 
 // Input
@@ -179,7 +182,7 @@ void AMultiplayerShooterCharacter::FireButtonDown(const FInputActionValue& Value
 {
 	if(Combat)
 	{
-		Combat->FireButtonPressed(true);
+		Combat->FireButtonPressed(Value.Get<bool>());
 	}
 }
 
@@ -287,6 +290,26 @@ void AMultiplayerShooterCharacter::PlayFireMontage(bool isAiming)
 	
 }
 
+void AMultiplayerShooterCharacter::PlayHitReactMontage()
+{
+	if(Combat == nullptr || Combat->EquippedWeapon == nullptr) return;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
+	if(AnimInstance && HitReactMontage)
+	{
+		AnimInstance->Montage_Play(HitReactMontage);
+		FName SectionName;
+		SectionName = FName("Front");
+		AnimInstance->Montage_JumpToSection(SectionName);
+	}
+}
+
+void AMultiplayerShooterCharacter::MulticastHit_Implementation()
+{
+	PlayHitReactMontage();
+}
+
 bool AMultiplayerShooterCharacter::IsWeaponEquipped()
 {
 	return (Combat && Combat->EquippedWeapon);
@@ -333,6 +356,31 @@ float AMultiplayerShooterCharacter::GetYawOffset()
 	FRotator MoveRotation = UKismetMathLibrary::MakeRotFromX(GetVelocity());
 
 	return UKismetMathLibrary::NormalizedDeltaRotator(MoveRotation, AimRotation).Yaw;
+}
+
+void AMultiplayerShooterCharacter::HideCloseCharacter()
+{
+	if(!IsLocallyControlled()) return;
+
+	float distance = (FollowCamera->GetComponentLocation() - GetActorLocation()).Size();
+	
+	if(distance < CameraThreshold)
+	{
+		GetMesh()->SetVisibility(false);
+
+		if(Combat && Combat->EquippedWeapon && Combat->EquippedWeapon->GetWeaponMesh())
+		{
+			Combat->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = true;
+		}
+	}
+	else
+	{
+		GetMesh()->SetVisibility(true);
+		if(Combat && Combat->EquippedWeapon && Combat->EquippedWeapon->GetWeaponMesh())
+		{
+			Combat->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = false;
+		}
+	}
 }
 
 void AMultiplayerShooterCharacter::ServerEquipButtonPressed_Implementation()

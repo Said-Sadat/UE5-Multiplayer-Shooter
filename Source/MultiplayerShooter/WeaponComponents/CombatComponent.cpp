@@ -3,13 +3,16 @@
 
 #include "CombatComponent.h"
 
+#include "Camera/CameraComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "MultiplayerShooter/MultiplayerShooterCharacter.h"
 #include "MultiplayerShooter/Weapon/Weapon.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "MultiplayerShooter/MultiplayerShooter.h"
 #include "Net/UnrealNetwork.h"
+#include "TimerManager.h"
 
 // Sets default values for this component's properties
 UCombatComponent::UCombatComponent()
@@ -18,25 +21,46 @@ UCombatComponent::UCombatComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
-	// ...
-
 	BaseWalkSpeed = 600.f;
 	AimWalkSpeed = 450.f;
+
+	CanFire = true;
 }
 
+void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
+	DOREPLIFETIME(UCombatComponent, bIsAiming);
+}
 
 // Called when the game starts
 void UCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ...
-
 	if(Character)
 	{
 		Character->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
+
+		if(Character->GetFollowCamera())
+		{
+			DefaultFOV = Character->GetFollowCamera()->FieldOfView;
+			CurrentFOV = DefaultFOV;
+		}
 	}
-	
+}
+
+void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	if(Character && Character->IsLocallyControlled())
+	{
+		TraceUnderCrosshairs(HitTarget);
+		InterpFOV(DeltaTime);
+	}
 }
 
 void UCombatComponent::SetAiming(bool isAiming)
@@ -47,6 +71,25 @@ void UCombatComponent::SetAiming(bool isAiming)
 	if (Character)
 	{
 		Character->GetCharacterMovement()->MaxWalkSpeed = bIsAiming ? AimWalkSpeed : BaseWalkSpeed;
+	}
+}
+
+void UCombatComponent::InterpFOV(float DeltaTime)
+{
+	if(EquippedWeapon == nullptr) return;
+
+	if(bIsAiming)
+	{
+		CurrentFOV = FMath::FInterpTo(CurrentFOV, EquippedWeapon->GetZoomedFOV(), DeltaTime, EquippedWeapon->GetZoomInterpSpeed());
+	}
+	else
+	{
+		CurrentFOV = FMath::FInterpTo(CurrentFOV, DefaultFOV, DeltaTime, ZoomInterpSpeed);
+	}
+
+	if(Character && Character->GetFollowCamera())
+	{
+		Character->GetFollowCamera()->SetFieldOfView(CurrentFOV);
 	}
 }
 
@@ -63,12 +106,38 @@ void UCombatComponent::FireButtonPressed(bool isPressed)
 {
 	IsFireButtonPressed = isPressed;
 
-	if(IsFireButtonPressed)
+	if(IsFireButtonPressed && EquippedWeapon)
 	{
-		FHitResult HitResult;
-		TraceUnderCrosshairs(HitResult);
+		if(CanFire)
+		{
+			CanFire = false;
+			ServerFire(HitTarget.ImpactPoint);
+			StartFireTimer();
+		}
+	}
+}
 
-		ServerFire(HitResult.ImpactPoint);
+void UCombatComponent::StartFireTimer()
+{
+	if(!EquippedWeapon || !Character) return;
+	
+	Character->GetWorldTimerManager().SetTimer(
+		FireTimer,
+		this,
+		&ThisClass::FireTimerFinish,
+		EquippedWeapon->GetFireDelay()
+		);
+}
+
+void UCombatComponent::FireTimerFinish()
+{
+	if(!EquippedWeapon) return;
+	
+	CanFire = true;
+	if(IsFireButtonPressed && EquippedWeapon->GetIsAutomatic())
+	{
+		ServerFire(HitTarget.ImpactPoint);
+		StartFireTimer();
 	}
 }
 
@@ -91,18 +160,35 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 	if(ScreenToWorld)
 	{
 		FVector Start = CrosshairWorldPos;
+
+		if(Character)
+		{
+			float DistanceToCharacter = (Character->GetActorLocation() - Start).Size();
+			Start += CrosshairWorldDirection * (DistanceToCharacter + 30.f);
+		}
+		
 		FVector End = Start + CrosshairWorldDirection * TRACE_LENGTH;
 
 		GetWorld()->LineTraceSingleByChannel(
 			TraceHitResult,
 			Start,
 			End,
-			ECC_Visibility
+			ECC_SkeletalMesh
 			);
 
 		if(!TraceHitResult.bBlockingHit)
 		{
-			TraceHitResult.ImpactPoint = End;
+			GetWorld()->LineTraceSingleByChannel(
+				TraceHitResult,
+				Start,
+				End,
+				ECC_Visibility
+				);
+
+			if(!TraceHitResult.bBlockingHit)
+			{
+				TraceHitResult.ImpactPoint = End;
+			}
 		}
 	}
 }
@@ -130,22 +216,6 @@ void UCombatComponent::ServerSetAiming_Implementation(bool isAiming)
 	{
 		Character->GetCharacterMovement()->MaxWalkSpeed = bIsAiming ? AimWalkSpeed : BaseWalkSpeed;
 	}
-}
-
-// Called every frame
-void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// ...
-}
-
-void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
-	DOREPLIFETIME(UCombatComponent, bIsAiming);
 }
 
 void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)

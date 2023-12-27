@@ -62,4 +62,21 @@ private:
 	float AimWalkSpeed;
 
 	bool IsFireButtonPressed;
+	float DefaultFOV;
+	float CurrentFOV;
+	FHitResult HitTarget;
+
+	UPROPERTY(EditAnywhere, Category= "Combat")
+	float ZoomedFOV = 30.f;
+	UPROPERTY(EditAnywhere, Category= "Combat")
+	float ZoomInterpSpeed = 20.f;
+
+	void InterpFOV(float DeltaTime);
+
+	FTimerHandle FireTimer;
+
+	bool CanFire = true;
+
+	void StartFireTimer();
+	void FireTimerFinish();
 };

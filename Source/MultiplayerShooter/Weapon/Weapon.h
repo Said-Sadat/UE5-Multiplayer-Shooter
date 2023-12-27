@@ -37,6 +37,10 @@ public:
 	void SetWeaponState(EWeaponState State);
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
+	FORCEINLINE float GetZoomedFOV() const { return ZoomedFOV; }
+	FORCEINLINE float GetZoomInterpSpeed() const { return ZoomInterpSpeed; }
+	FORCEINLINE float GetFireDelay() const { return FireDelay; }
+	FORCEINLINE bool GetIsAutomatic() const { return IsAutomatic; }
 	
 protected:
 	// Called when the game starts or when spawned
@@ -69,20 +73,16 @@ private:
 	UPROPERTY(EditAnywhere, Category= "Weapon Properties")
 	class UAnimationAsset* FireAnimation;
 
-	UPROPERTY(EditAnywhere, Category= "Crosshairs")
-	class UTexture2D* CrosshairsCenter;
+	UPROPERTY(EditAnywhere)
+	float ZoomedFOV = 30.f;
 
-	UPROPERTY(EditAnywhere, Category= "Crosshairs")
-	class UTexture2D* CrosshairsLeft;
+	UPROPERTY(EditAnywhere)
+	float ZoomInterpSpeed = 20.f;
 
-	UPROPERTY(EditAnywhere, Category= "Crosshairs")
-	class UTexture2D* CrosshairsRight;
+	UPROPERTY(EditAnywhere, Category= "Combat")
+	float FireDelay = .15f;
 
-	UPROPERTY(EditAnywhere, Category= "Crosshairs")
-	class UTexture2D* CrosshairsTop;
-
-	UPROPERTY(EditAnywhere, Category= "Crosshairs")
-	class UTexture2D* CrosshairsBottom;
-
+	UPROPERTY(EditAnywhere, Category= "Combat")
+	bool IsAutomatic = true;
 	
 };
