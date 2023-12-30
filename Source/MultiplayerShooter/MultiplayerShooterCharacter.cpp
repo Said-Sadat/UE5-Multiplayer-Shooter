@@ -15,6 +15,7 @@
 #include "Weapon/Weapon.h"
 #include "WeaponComponents/CombatComponent.h"
 #include "MultiplayerShooter.h"
+#include "Components/HealthComponent.h"
 
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
@@ -65,6 +66,9 @@ AMultiplayerShooterCharacter::AMultiplayerShooterCharacter()
 	
 	Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("Combat Component"));
 	Combat->SetIsReplicated(true);
+
+	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("Health Component"));
+	HealthComponent->SetIsReplicated(true);
 
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 }
