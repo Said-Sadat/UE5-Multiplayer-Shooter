@@ -25,8 +25,13 @@ class AMultiplayerShooterCharacter : public ACharacter
 	FRotator StartingAimRotation;
 	FTransform LeftHandTransform;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player Stats", meta = (AllowPrivateAccess = "true"))
-	class UHealthComponent* HealthComponent;
+	UPROPERTY(EditAnywhere, Category = "Player Stats")
+	float MaxHealth = 100.f;
+	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player Stats")
+	float Health = 100.f;
+
+	UFUNCTION()
+	void OnRep_Health();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* CameraBoom;
@@ -70,7 +75,6 @@ public:
 
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
-	FORCEINLINE class UHealthComponent* GetHealthComponent() const { return HealthComponent; }
 
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE float GetAO_Yaw() const { return AO_Yaw; }
@@ -123,4 +127,9 @@ private:
 
 	void HideCloseCharacter();
 	void PlayHitReactMontage();
+
+	UPROPERTY(EditAnywhere, Category = "Player Stats")
+	TSubclassOf<class UUserWidget> CharacterOverlayClass;
+
+	class UCharacterHUD* CharacterHUD;
 };

@@ -15,13 +15,19 @@
 #include "Weapon/Weapon.h"
 #include "WeaponComponents/CombatComponent.h"
 #include "MultiplayerShooter.h"
+#include "Blueprint/UserWidget.h"
 #include "Components/HealthComponent.h"
+#include "UI/CharacterHUD.h"
 
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 //////////////////////////////////////////////////////////////////////////
 // AMultiplayerShooterCharacter
+
+void AMultiplayerShooterCharacter::OnRep_Health()
+{
+}
 
 AMultiplayerShooterCharacter::AMultiplayerShooterCharacter()
 {
@@ -67,10 +73,8 @@ AMultiplayerShooterCharacter::AMultiplayerShooterCharacter()
 	Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("Combat Component"));
 	Combat->SetIsReplicated(true);
 
-	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("Health Component"));
-	HealthComponent->SetIsReplicated(true);
-
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
+
 }
 
 void AMultiplayerShooterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -79,6 +83,7 @@ void AMultiplayerShooterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimePr
 
 	DOREPLIFETIME_CONDITION(AMultiplayerShooterCharacter, OverlappingWeapon, COND_OwnerOnly);
 	DOREPLIFETIME(AMultiplayerShooterCharacter, bIsAiming);
+	DOREPLIFETIME(AMultiplayerShooterCharacter, Health);
 }
 
 void AMultiplayerShooterCharacter::PostInitializeComponents()
@@ -95,11 +100,19 @@ void AMultiplayerShooterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	Health = MaxHealth;
+
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+		}
+
+		if(CharacterOverlayClass)
+		{
+			CharacterHUD = CreateWidget<UCharacterHUD>(PlayerController, CharacterOverlayClass);
+			CharacterHUD->AddToViewport();
 		}
 	}
 }
@@ -239,7 +252,7 @@ void AMultiplayerShooterCharacter::AimOffset(float DeltaTime)
 		FRotator CurrentAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
 		FRotator DeltaAimRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimRotation, StartingAimRotation);
 		AO_Yaw = DeltaAimRotation.Yaw;
-		bUseControllerRotationYaw = false;
+		bUseControllerRotationYaw = true;
 	}
 
 	if(Speed > 0.f || isInAir)
