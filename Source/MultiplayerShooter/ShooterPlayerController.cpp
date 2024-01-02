@@ -3,6 +3,15 @@
 
 #include "ShooterPlayerController.h"
 #include "MultiplayerShooterCharacter.h"
+#include "UI/CharacterHUD.h"
+#include "UI/ShooterHUD.h"
+
+void AShooterPlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+
+	ShooterHUD = Cast<AShooterHUD>(GetHUD());
+}
 
 void AShooterPlayerController::OnPossess(APawn* InPawn)
 {
@@ -11,6 +20,20 @@ void AShooterPlayerController::OnPossess(APawn* InPawn)
 	AMultiplayerShooterCharacter* ShooterCharacter = Cast<AMultiplayerShooterCharacter>(InPawn);
 	if(ShooterCharacter)
 	{
-		ShooterCharacter->SetUIVariables(ShooterCharacter->GetHealth(), ShooterCharacter->GetMaxHealth());
+		SetUIHealth(ShooterCharacter->GetHealth(), ShooterCharacter->GetMaxHealth());
+	}
+}
+
+void AShooterPlayerController::SetUIHealth(float Health, float MaxHealth)
+{
+	ShooterHUD = ShooterHUD == nullptr ? Cast<AShooterHUD>(GetHUD()) : ShooterHUD;
+
+	bool isHudValid = ShooterHUD &&
+		ShooterHUD->GetCharacterHUD() &&
+			ShooterHUD->GetCharacterHUD()->HealthBar;
+
+	if(isHudValid)
+	{
+		ShooterHUD->GetCharacterHUD()->SetHealthBarPercent(Health, MaxHealth);
 	}
 }

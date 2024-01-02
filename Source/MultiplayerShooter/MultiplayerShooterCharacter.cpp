@@ -100,21 +100,16 @@ void AMultiplayerShooterCharacter::BeginPlay()
 
 	Health = MaxHealth;
 
-	APlayerController* PlayerController = Cast<APlayerController>(Controller);
+	ShooterPlayerController = Cast<AShooterPlayerController>(Controller);
 	
-	if (PlayerController)
+	if (ShooterPlayerController)
 	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(ShooterPlayerController->GetLocalPlayer()))
 		{
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 
-		if(CharacterOverlayClass)
-		{
-			CharacterHUD = CreateWidget<UCharacterHUD>(PlayerController, CharacterOverlayClass);
-			CharacterHUD->AddToViewport();
-			SetUIVariables(Health, MaxHealth);
-		}
+		UpdateHUDHealth();
 	}
 	
 	if(HasAuthority())
@@ -284,7 +279,7 @@ void AMultiplayerShooterCharacter::ReceiveDamage(AActor* DamagedActor, float Dam
 {
 	Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
 
-	SetUIVariables(Health, MaxHealth);
+	UpdateHUDHealth();
 	PlayHitReactMontage();
 
 	if(Health == 0.f)
@@ -375,9 +370,17 @@ void AMultiplayerShooterCharacter::MultiCastDead_Implementation()
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
+void AMultiplayerShooterCharacter::UpdateHUDHealth()
+{
+	ShooterPlayerController = ShooterPlayerController == nullptr ? ShooterPlayerController = Cast<AShooterPlayerController>(Controller) : ShooterPlayerController;
+
+	if(ShooterPlayerController)
+		ShooterPlayerController->SetUIHealth(Health, MaxHealth);
+}
+
 void AMultiplayerShooterCharacter::OnRep_Health()
 {
-	SetUIVariables(Health, MaxHealth);
+	UpdateHUDHealth();
 	PlayHitReactMontage();
 }
 
@@ -403,12 +406,6 @@ void AMultiplayerShooterCharacter::PlayHitReactMontage()
 		SectionName = FName("Front");
 		AnimInstance->Montage_JumpToSection(SectionName);
 	}
-}
-
-void AMultiplayerShooterCharacter::SetUIVariables(float health, float maxHealth)
-{
-	if(!CharacterHUD) return;
-	CharacterHUD->SetHealthBarPercent(health, maxHealth);
 }
 
 bool AMultiplayerShooterCharacter::IsWeaponEquipped()

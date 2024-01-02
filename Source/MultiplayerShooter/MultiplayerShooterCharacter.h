@@ -25,6 +25,9 @@ class AMultiplayerShooterCharacter : public ACharacter
 	FRotator StartingAimRotation;
 	FTransform LeftHandTransform;
 
+	class AShooterPlayerController* ShooterPlayerController;
+	void UpdateHUDHealth();
+
 	UPROPERTY(EditAnywhere, Category = "Player Stats")
 	float MaxHealth = 100.f;
 	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player Stats")
@@ -116,8 +119,6 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PostInitializeComponents() override;
 
-	void SetUIVariables(float health, float maxHealth);
-
 protected:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
@@ -148,9 +149,4 @@ private:
 
 	void HideCloseCharacter();
 	void PlayHitReactMontage();
-
-	UPROPERTY(EditAnywhere, Category = "Player Stats")
-	TSubclassOf<class UUserWidget> CharacterOverlayClass;
-
-	class UCharacterHUD* CharacterHUD;
 };
