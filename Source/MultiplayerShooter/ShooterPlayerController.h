@@ -23,4 +23,6 @@ public:
 	virtual void OnPossess(APawn* InPawn) override;
 
 	void SetUIHealth(float Health, float MaxHealth);
+	void SetUIScore(float Score);
+	void SetDeathCount(float Deaths);
 };

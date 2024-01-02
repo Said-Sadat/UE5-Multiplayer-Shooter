@@ -7,10 +7,24 @@
 #include "Kismet/GameplayStatics.h"
 #include "MultiplayerShooter/MultiplayerShooterCharacter.h"
 #include "MultiplayerShooter/ShooterPlayerController.h"
+#include "MultiplayerShooter/PlayerState/ShooterPlayerState.h"
 
 void AShooterGameMode::PlayerKilled(AMultiplayerShooterCharacter* DeadCharacter, AShooterPlayerController* VictimController,
 	AShooterPlayerController* AttackerController)
 {
+	AShooterPlayerState* AttackerPlayerState = AttackerController ? Cast<AShooterPlayerState>(AttackerController->PlayerState) : nullptr;
+	AShooterPlayerState* VictimPlayerState = VictimController ? Cast<AShooterPlayerState>(VictimController->PlayerState) : nullptr;
+
+	if(AttackerPlayerState && AttackerPlayerState != VictimPlayerState)
+	{
+		AttackerPlayerState->AddToScore(1.0f);
+	}
+
+	if(VictimPlayerState)
+	{
+		VictimPlayerState->AddToDeaths(1);
+	}
+	
 	if(DeadCharacter)
 	{
 		DeadCharacter->Dead();

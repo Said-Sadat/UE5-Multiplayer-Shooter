@@ -16,11 +16,9 @@
 #include "WeaponComponents/CombatComponent.h"
 #include "MultiplayerShooter.h"
 #include "ShooterPlayerController.h"
-#include "Blueprint/UserWidget.h"
-#include "UI/CharacterHUD.h"
 #include "GameMode/ShooterGameMode.h"
 #include "TimerManager.h"
-
+#include "MultiplayerShooter/PlayerState/ShooterPlayerState.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -124,6 +122,7 @@ void AMultiplayerShooterCharacter::Tick(float DeltaSeconds)
 
 	AimOffset(DeltaSeconds);
 	HideCloseCharacter();
+	PollInit();
 }
 
 // Input
@@ -274,8 +273,21 @@ void AMultiplayerShooterCharacter::AimOffset(float DeltaTime)
 	}
 }
 
+void AMultiplayerShooterCharacter::PollInit()
+{
+	if(ShooterPlayerState == nullptr)
+	{
+		ShooterPlayerState = GetPlayerState<AShooterPlayerState>();
+		if(ShooterPlayerState)
+		{
+			ShooterPlayerState->AddToScore(0);
+			ShooterPlayerState->AddToDeaths(0);
+		}
+	}
+}
+
 void AMultiplayerShooterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
-	AController* InstigatorController, AActor* DamageCauser)
+                                                 AController* InstigatorController, AActor* DamageCauser)
 {
 	Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
 

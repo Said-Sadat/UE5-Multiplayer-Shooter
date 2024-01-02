@@ -26,6 +26,7 @@ class AMultiplayerShooterCharacter : public ACharacter
 	FTransform LeftHandTransform;
 
 	class AShooterPlayerController* ShooterPlayerController;
+	class AShooterPlayerState* ShooterPlayerState;
 	void UpdateHUDHealth();
 
 	UPROPERTY(EditAnywhere, Category = "Player Stats")
@@ -128,6 +129,7 @@ protected:
 	void Equip(const FInputActionValue& Value);
 	void CrouchButtonPressed(const FInputActionValue& Value);
 	void AimOffset(float DeltaTime);
+	void PollInit();
 
 	UFUNCTION()
 	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);

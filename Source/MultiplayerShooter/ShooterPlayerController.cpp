@@ -37,3 +37,31 @@ void AShooterPlayerController::SetUIHealth(float Health, float MaxHealth)
 		ShooterHUD->GetCharacterHUD()->SetHealthBarPercent(Health, MaxHealth);
 	}
 }
+
+void AShooterPlayerController::SetUIScore(float Score)
+{
+	ShooterHUD = ShooterHUD == nullptr ? Cast<AShooterHUD>(GetHUD()) : ShooterHUD;
+
+	bool isHudValid = ShooterHUD &&
+		ShooterHUD->GetCharacterHUD() &&
+			ShooterHUD->GetCharacterHUD()->ScoreAmount;
+
+	if(isHudValid)
+	{
+		ShooterHUD->GetCharacterHUD()->SetScoreText(Score);
+	}
+}
+
+void AShooterPlayerController::SetDeathCount(float Deaths)
+{
+	ShooterHUD = ShooterHUD == nullptr ? Cast<AShooterHUD>(GetHUD()) : ShooterHUD;
+
+	bool isHudValid = ShooterHUD &&
+		ShooterHUD->GetCharacterHUD() &&
+			ShooterHUD->GetCharacterHUD()->DeathAmount;
+
+	if(isHudValid)
+	{
+		ShooterHUD->GetCharacterHUD()->SetDeathAmount(Deaths);
+	}
+}
