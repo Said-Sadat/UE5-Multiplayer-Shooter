@@ -18,4 +18,6 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	class UProgressBar* HealthBar;
 
+	void SetHealthBarPercent(float Health, float MaxHealth);
+
 };

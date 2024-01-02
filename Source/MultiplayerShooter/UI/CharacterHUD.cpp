@@ -3,3 +3,9 @@
 
 #include "CharacterHUD.h"
 
+#include "Components/ProgressBar.h"
+
+void UCharacterHUD::SetHealthBarPercent(float Health, float MaxHealth)
+{
+	HealthBar->SetPercent(Health / MaxHealth);
+}

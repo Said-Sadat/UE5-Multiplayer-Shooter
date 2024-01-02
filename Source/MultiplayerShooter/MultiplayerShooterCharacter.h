@@ -29,9 +29,16 @@ class AMultiplayerShooterCharacter : public ACharacter
 	float MaxHealth = 100.f;
 	UPROPERTY(ReplicatedUsing = OnRep_Health, VisibleAnywhere, Category = "Player Stats")
 	float Health = 100.f;
+	bool IsDead = false;
 
+	FTimerHandle DeadTimer;
+	UPROPERTY(EditDefaultsOnly)
+	float DeadDelay = 3.f;
+	
 	UFUNCTION()
 	void OnRep_Health();
+
+	void DeadTimerFinished();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* CameraBoom;
@@ -69,12 +76,19 @@ class AMultiplayerShooterCharacter : public ACharacter
 	class UAnimMontage* FireWeaponMontage;
 	UPROPERTY(EditAnywhere, Category= Combat, meta=(AllowPrivateAccess = "true"))
 	class UAnimMontage* HitReactMontage;
+	UPROPERTY(EditAnywhere, Category= Combat, meta=(AllowPrivateAccess = "true"))
+	class UAnimMontage* DeathMontage;
 
 public:
 	AMultiplayerShooterCharacter();
 
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+	FORCEINLINE float GetHealth() const { return Health; }
+	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
+
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE bool GetIsDead() const { return IsDead; }
 
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE float GetAO_Yaw() const { return AO_Yaw; }
@@ -84,10 +98,12 @@ public:
 
 	void SetOverlappingWeapon(AWeapon* Weapon);
 	void PlayFireMontage(bool isAiming);
+	void PlayDeathMontage();
 
-	UFUNCTION(NetMulticast, Unreliable)
-	void MulticastHit();
-
+	void Dead();
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiCastDead();
+	
 	UFUNCTION(BlueprintCallable)
 	bool IsWeaponEquipped();
 	
@@ -100,6 +116,8 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PostInitializeComponents() override;
 
+	void SetUIVariables(float health, float maxHealth);
+
 protected:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
@@ -109,6 +127,9 @@ protected:
 	void Equip(const FInputActionValue& Value);
 	void CrouchButtonPressed(const FInputActionValue& Value);
 	void AimOffset(float DeltaTime);
+
+	UFUNCTION()
+	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);
 			
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	

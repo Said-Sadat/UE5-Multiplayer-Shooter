@@ -93,15 +93,6 @@ void UCombatComponent::InterpFOV(float DeltaTime)
 	}
 }
 
-void UCombatComponent::OnRep_EquippedWeapon()
-{
-	if(EquippedWeapon && Character)
-	{
-		Character->GetCharacterMovement()->bOrientRotationToMovement = false;
-		Character->bUseControllerRotationYaw = true;
-	}
-}
-
 void UCombatComponent::FireButtonPressed(bool isPressed)
 {
 	IsFireButtonPressed = isPressed;
@@ -234,4 +225,21 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	EquippedWeapon->SetOwner(Character);
 	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
 	Character->bUseControllerRotationYaw = true;
+}
+
+void UCombatComponent::OnRep_EquippedWeapon()
+{
+	if(EquippedWeapon && Character)
+	{
+		EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
+		const USkeletalMeshSocket* WeaponSocket = Character->GetMesh()->GetSocketByName(FName("WeaponSocket"));
+
+		if(WeaponSocket)
+		{
+			WeaponSocket->AttachActor(EquippedWeapon, Character->GetMesh());
+		}
+		
+		Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+		Character->bUseControllerRotationYaw = true;
+	}
 }

@@ -15,19 +15,17 @@
 #include "Weapon/Weapon.h"
 #include "WeaponComponents/CombatComponent.h"
 #include "MultiplayerShooter.h"
+#include "ShooterPlayerController.h"
 #include "Blueprint/UserWidget.h"
-#include "Components/HealthComponent.h"
 #include "UI/CharacterHUD.h"
+#include "GameMode/ShooterGameMode.h"
+#include "TimerManager.h"
 
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 //////////////////////////////////////////////////////////////////////////
 // AMultiplayerShooterCharacter
-
-void AMultiplayerShooterCharacter::OnRep_Health()
-{
-}
 
 AMultiplayerShooterCharacter::AMultiplayerShooterCharacter()
 {
@@ -102,7 +100,9 @@ void AMultiplayerShooterCharacter::BeginPlay()
 
 	Health = MaxHealth;
 
-	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
+	APlayerController* PlayerController = Cast<APlayerController>(Controller);
+	
+	if (PlayerController)
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
@@ -113,7 +113,13 @@ void AMultiplayerShooterCharacter::BeginPlay()
 		{
 			CharacterHUD = CreateWidget<UCharacterHUD>(PlayerController, CharacterOverlayClass);
 			CharacterHUD->AddToViewport();
+			SetUIVariables(Health, MaxHealth);
 		}
+	}
+	
+	if(HasAuthority())
+	{
+		OnTakeAnyDamage.AddDynamic(this, &ThisClass::ReceiveDamage);
 	}
 }
 
@@ -273,6 +279,27 @@ void AMultiplayerShooterCharacter::AimOffset(float DeltaTime)
 	}
 }
 
+void AMultiplayerShooterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
+	AController* InstigatorController, AActor* DamageCauser)
+{
+	Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
+
+	SetUIVariables(Health, MaxHealth);
+	PlayHitReactMontage();
+
+	if(Health == 0.f)
+	{
+		AShooterGameMode* ShooterGameMode = GetWorld()->GetAuthGameMode<AShooterGameMode>();
+		if(ShooterGameMode)
+		{
+			AShooterPlayerController* ReceiverController = Cast<AShooterPlayerController>(Controller);
+			AShooterPlayerController* AttackerController = Cast<AShooterPlayerController>(InstigatorController);
+			
+			ShooterGameMode->PlayerKilled(this, ReceiverController, AttackerController);
+		}
+	}
+}
+
 void AMultiplayerShooterCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 {
 	if(OverlappingWeapon)
@@ -307,6 +334,62 @@ void AMultiplayerShooterCharacter::PlayFireMontage(bool isAiming)
 	
 }
 
+void AMultiplayerShooterCharacter::PlayDeathMontage()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
+	if(AnimInstance && DeathMontage)
+	{
+		AnimInstance->Montage_Play(DeathMontage);
+	}
+}
+
+void AMultiplayerShooterCharacter::Dead()
+{
+	if(Combat && Combat->EquippedWeapon)
+	{
+		Combat->EquippedWeapon->Dropped();
+	}
+	
+	MultiCastDead();
+	
+	GetWorldTimerManager().SetTimer(
+		DeadTimer,
+		this,
+		&ThisClass::DeadTimerFinished,
+		DeadDelay);
+}
+
+void AMultiplayerShooterCharacter::MultiCastDead_Implementation()
+{
+	IsDead = true;
+	PlayDeathMontage();
+	GetCharacterMovement()->DisableMovement();
+	GetCharacterMovement()->StopMovementImmediately();
+	if(AShooterPlayerController* ShooterController = Cast<AShooterPlayerController>(Controller))
+	{
+		DisableInput(ShooterController);
+	}
+
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
+void AMultiplayerShooterCharacter::OnRep_Health()
+{
+	SetUIVariables(Health, MaxHealth);
+	PlayHitReactMontage();
+}
+
+void AMultiplayerShooterCharacter::DeadTimerFinished()
+{
+	AShooterGameMode* ShooterGameMode = GetWorld()->GetAuthGameMode<AShooterGameMode>();
+	if(ShooterGameMode)
+	{
+		ShooterGameMode->RequestRespawn(this, Controller);
+	}
+}
+
 void AMultiplayerShooterCharacter::PlayHitReactMontage()
 {
 	if(Combat == nullptr || Combat->EquippedWeapon == nullptr) return;
@@ -322,9 +405,10 @@ void AMultiplayerShooterCharacter::PlayHitReactMontage()
 	}
 }
 
-void AMultiplayerShooterCharacter::MulticastHit_Implementation()
+void AMultiplayerShooterCharacter::SetUIVariables(float health, float maxHealth)
 {
-	PlayHitReactMontage();
+	if(!CharacterHUD) return;
+	CharacterHUD->SetHealthBarPercent(health, maxHealth);
 }
 
 bool AMultiplayerShooterCharacter::IsWeaponEquipped()
