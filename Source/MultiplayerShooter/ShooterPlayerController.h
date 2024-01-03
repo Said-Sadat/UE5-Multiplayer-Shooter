@@ -16,10 +16,12 @@ class MULTIPLAYERSHOOTER_API AShooterPlayerController : public APlayerController
 
 	class AShooterHUD* ShooterHUD;
 	class UCharacterHUD* CharacterHUD;
+	class AShooterGameMode* ShooterGameMode;
 
 	float LevelStartingTime = 0.f;
 	float MatchTime = 0.f;
 	float WarmupTime = 0.f;
+	float CooldownTime = 0.f;
 	uint32 CountdownInt = 0;
 	bool InitializeCharacterHUD = false;
 	float HUDHealth, HUDMaxHealth, HUDScore, HUDDeaths;
@@ -56,7 +58,7 @@ protected:
 	void ServerCheckMatchState();
 
 	UFUNCTION(Client, Reliable)
-	void ClientJoinMidGame(FName StateOfMatch, float Warmup, float Match, float StartingTime);
+	void ClientJoinMidGame(FName StateOfMatch, float Warmup, float Match, float Cooldown, float StartingTime);
 
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -70,4 +72,5 @@ public:
 	void SetUITimer(float RemainingTime);
 	void SetUIAnnouncementTime(float RemainingTime);
 	void OnMatchStateSet(FName State);
+	void HandleCooldown();
 };
