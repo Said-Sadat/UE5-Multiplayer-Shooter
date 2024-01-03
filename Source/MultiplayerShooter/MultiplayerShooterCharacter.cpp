@@ -105,6 +105,7 @@ void AMultiplayerShooterCharacter::BeginPlay()
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(ShooterPlayerController->GetLocalPlayer()))
 		{
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+			IsInputSetup = true;
 		}
 
 		UpdateHUDHealth();
@@ -119,6 +120,19 @@ void AMultiplayerShooterCharacter::BeginPlay()
 void AMultiplayerShooterCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+
+	if(HasAuthority() && !IsInputSetup && Controller)
+	{
+		ShooterPlayerController = ShooterPlayerController == nullptr ? Cast<AShooterPlayerController>(Controller) : ShooterPlayerController;
+		if(ShooterPlayerController)
+		{
+			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(ShooterPlayerController->GetLocalPlayer()))
+			{
+				Subsystem->AddMappingContext(DefaultMappingContext, 0);
+				IsInputSetup = true;
+			}	
+		}
+	}
 
 	AimOffset(DeltaSeconds);
 	HideCloseCharacter();

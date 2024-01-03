@@ -9,8 +9,49 @@
 #include "MultiplayerShooter/ShooterPlayerController.h"
 #include "MultiplayerShooter/PlayerState/ShooterPlayerState.h"
 
+AShooterGameMode::AShooterGameMode()
+{
+	bDelayedStart = true;
+}
+
+void AShooterGameMode::BeginPlay()
+{
+	Super::BeginPlay();
+
+	LevelStartingTime = GetWorld()->GetTimeSeconds();
+}
+
+void AShooterGameMode::OnMatchStateSet()
+{
+	Super::OnMatchStateSet();
+
+	for(FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		AShooterPlayerController* ShooterPlayer = Cast<AShooterPlayerController>(*It);
+		if(ShooterPlayer)
+		{
+			ShooterPlayer->OnMatchStateSet(MatchState);
+		}
+	}
+}
+
+void AShooterGameMode::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	if(MatchState == MatchState::WaitingToStart)
+	{
+		CountDownTime = WarmupTime - GetWorld()->GetTimeSeconds() + LevelStartingTime;
+
+		if(CountDownTime <= 0.f)
+		{
+			StartMatch();
+		}
+	}
+}
+
 void AShooterGameMode::PlayerKilled(AMultiplayerShooterCharacter* DeadCharacter, AShooterPlayerController* VictimController,
-	AShooterPlayerController* AttackerController)
+                                    AShooterPlayerController* AttackerController)
 {
 	AShooterPlayerState* AttackerPlayerState = AttackerController ? Cast<AShooterPlayerState>(AttackerController->PlayerState) : nullptr;
 	AShooterPlayerState* VictimPlayerState = VictimController ? Cast<AShooterPlayerState>(VictimController->PlayerState) : nullptr;

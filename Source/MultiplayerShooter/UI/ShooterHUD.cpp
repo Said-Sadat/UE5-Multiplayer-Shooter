@@ -3,14 +3,13 @@
 
 #include "ShooterHUD.h"
 
+#include "Announcement.h"
 #include "CharacterHUD.h"
 #include "Blueprint/UserWidget.h"
 
 void AShooterHUD::BeginPlay()
 {
 	Super::BeginPlay();
-
-	AddCharacterOverlay();
 }
 
 void AShooterHUD::AddCharacterOverlay()
@@ -20,6 +19,16 @@ void AShooterHUD::AddCharacterOverlay()
 	{
 		CharacterHUD = CreateWidget<UCharacterHUD>(PlayerController, CharacterOverlayClass);
 		CharacterHUD->AddToViewport();
+	}
+}
+
+void AShooterHUD::AddAnnouncement()
+{
+	APlayerController* PlayerController = GetOwningPlayerController();
+	if(PlayerController && AnnouncementClass && Announcement == nullptr)
+	{
+		Announcement = CreateWidget<UAnnouncement>(PlayerController, AnnouncementClass);
+		Announcement->AddToViewport();
 	}
 }
 

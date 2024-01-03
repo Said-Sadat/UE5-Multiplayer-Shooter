@@ -16,15 +16,21 @@ class MULTIPLAYERSHOOTER_API AShooterHUD : public AHUD
 
 	UPROPERTY(EditAnywhere, Category = "Player Stats")
 	TSubclassOf<class UUserWidget> CharacterOverlayClass;
-
 	class UCharacterHUD* CharacterHUD;
+
+	UPROPERTY(EditAnywhere, Category = "Announcements")
+	TSubclassOf<class UUserWidget> AnnouncementClass;
+	class UAnnouncement* Announcement;
 
 protected:
 	virtual void BeginPlay() override;
-	void AddCharacterOverlay();
 	
 public:
+	void AddCharacterOverlay();
+	void AddAnnouncement();
+	
 	virtual void DrawHUD() override;
 
 	FORCEINLINE UCharacterHUD* GetCharacterHUD() const { return CharacterHUD; }
+	FORCEINLINE UAnnouncement* GetAnnouncement() const { return Announcement; }
 };

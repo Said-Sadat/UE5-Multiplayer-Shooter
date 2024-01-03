@@ -24,7 +24,11 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* DeathAmount;
 
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* MatchTimerText;
+
 	void SetHealthBarPercent(float Health, float MaxHealth);
 	void SetScoreText(float Score);
 	void SetDeathAmount(int Deaths);
+	void SetTimerText(float RemainingTime);
 };

@@ -22,3 +22,12 @@ void UCharacterHUD::SetDeathAmount(int Deaths)
 	FString DeathText = FString::Printf(TEXT("Deaths: %d"), Deaths);
 	DeathAmount->SetText(FText::FromString(DeathText));
 }
+
+void UCharacterHUD::SetTimerText(float RemainingTime)
+{
+	int32 Minutes = FMath::FloorToInt(RemainingTime / 60.f);
+	int32 Seconds = RemainingTime - (Minutes * 60);
+	
+	FString TimerText = FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds);
+	MatchTimerText->SetText(FText::FromString(TimerText));
+}

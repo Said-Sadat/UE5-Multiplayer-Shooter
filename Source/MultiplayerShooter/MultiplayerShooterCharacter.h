@@ -24,6 +24,7 @@ class AMultiplayerShooterCharacter : public ACharacter
 	float AO_Pitch;
 	FRotator StartingAimRotation;
 	FTransform LeftHandTransform;
+	bool IsInputSetup = false;
 
 	class AShooterPlayerController* ShooterPlayerController;
 	class AShooterPlayerState* ShooterPlayerState;

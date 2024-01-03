@@ -38,7 +38,7 @@ void AShooterPlayerState::AddToDeaths(int DeathAmount)
 		ShooterController = ShooterController == nullptr ? Cast<AShooterPlayerController>(ShooterCharacter->Controller) : ShooterController;
 		if(ShooterController)
 		{
-			ShooterController->SetDeathCount(Deaths);
+			ShooterController->SetUIDeathCount(Deaths);
 		}
 	}
 }
@@ -66,7 +66,7 @@ void AShooterPlayerState::OnRep_Deaths()
 		ShooterController = ShooterController == nullptr ? Cast<AShooterPlayerController>(ShooterCharacter->Controller) : ShooterController;
 		if(ShooterController)
 		{
-			ShooterController->SetDeathCount(Deaths);
+			ShooterController->SetUIDeathCount(Deaths);
 		}
 	}
 }
