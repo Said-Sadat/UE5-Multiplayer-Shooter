@@ -8,6 +8,7 @@
 #include "MultiplayerShooter/MultiplayerShooterCharacter.h"
 #include "MultiplayerShooter/ShooterPlayerController.h"
 #include "MultiplayerShooter/PlayerState/ShooterPlayerState.h"
+#include "MultiplayerShooter/GameState/MainGameState.h"
 
 namespace MatchState
 {
@@ -77,9 +78,12 @@ void AShooterGameMode::PlayerKilled(AMultiplayerShooterCharacter* DeadCharacter,
 	AShooterPlayerState* AttackerPlayerState = AttackerController ? Cast<AShooterPlayerState>(AttackerController->PlayerState) : nullptr;
 	AShooterPlayerState* VictimPlayerState = VictimController ? Cast<AShooterPlayerState>(VictimController->PlayerState) : nullptr;
 
-	if(AttackerPlayerState && AttackerPlayerState != VictimPlayerState)
+	AMainGameState* MainGameState = GetGameState<AMainGameState>();
+	
+	if(AttackerPlayerState && AttackerPlayerState != VictimPlayerState && MainGameState)
 	{
 		AttackerPlayerState->AddToScore(1.0f);
+		MainGameState->UpdateTopScore(AttackerPlayerState);
 	}
 
 	if(VictimPlayerState)

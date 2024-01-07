@@ -6,9 +6,11 @@
 #include "Components/TextBlock.h"
 #include "Kismet/GameplayStatics.h"
 #include "MultiplayerShooter/GameMode/ShooterGameMode.h"
+#include "MultiplayerShooter/GameState/MainGameState.h"
 #include "UI/CharacterHUD.h"
 #include "UI/ShooterHUD.h"
 #include "Net/UnrealNetwork.h"
+#include "PlayerState/ShooterPlayerState.h"
 #include "UI/Announcement.h"
 
 void AShooterPlayerController::BeginPlay()
@@ -122,7 +124,36 @@ void AShooterPlayerController::HandleCooldown()
 			ShooterHUD->GetAnnouncement()->SetVisibility(ESlateVisibility::Visible);
 			FString AnnouncementText("New Match Starts In:");
 			ShooterHUD->GetAnnouncement()->AnnouncementText->SetText(FText::FromString(AnnouncementText));
-			ShooterHUD->GetAnnouncement()->InfoText->SetText(FText());
+
+			AMainGameState* MainGameState = Cast<AMainGameState>(UGameplayStatics::GetGameState(GetWorld()));
+			AShooterPlayerState* ShooterPlayerState = GetPlayerState<AShooterPlayerState>();
+			FString InfoTextString;
+			
+			if(MainGameState && ShooterPlayerState)
+			{
+				TArray<AShooterPlayerState*> TopPlayers = MainGameState->TopScoringPlayers;
+				if(TopPlayers.Num() == 0)
+				{
+					InfoTextString = FString("There is no winner...");
+				}
+				else if (TopPlayers.Num() == 1 && TopPlayers[0] == ShooterPlayerState)
+				{
+					InfoTextString = FString("You Win!");
+				}
+				else if (TopPlayers.Num() == 1)
+				{
+					InfoTextString = FString::Printf(TEXT("Winner: \n%s"), *TopPlayers[0]->GetPlayerName());
+				}
+				else if (TopPlayers.Num() > 1)
+				{
+					InfoTextString = FString("Players Tied For Win: \n");
+					for (auto TiedPlayer : TopPlayers)
+					{
+						InfoTextString.Append(FString::Printf(TEXT("%s\n"), *TiedPlayer->GetPlayerName()));
+					}
+				}
+				ShooterHUD->GetAnnouncement()->InfoText->SetText(FText::FromString(InfoTextString));
+			}
 		}
 	}
 }
