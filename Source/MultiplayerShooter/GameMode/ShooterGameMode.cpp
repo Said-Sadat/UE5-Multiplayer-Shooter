@@ -79,8 +79,13 @@ void AShooterGameMode::PlayerKilled(AMultiplayerShooterCharacter* DeadCharacter,
 	AShooterPlayerState* VictimPlayerState = VictimController ? Cast<AShooterPlayerState>(VictimController->PlayerState) : nullptr;
 
 	AMainGameState* MainGameState = GetGameState<AMainGameState>();
+
+	bool ShouldAddToScore = AttackerPlayerState &&
+		AttackerPlayerState != VictimPlayerState &&
+			MainGameState &&
+				MatchState == MatchState::InProgress;
 	
-	if(AttackerPlayerState && AttackerPlayerState != VictimPlayerState && MainGameState)
+	if(ShouldAddToScore)
 	{
 		AttackerPlayerState->AddToScore(1.0f);
 		MainGameState->UpdateTopScore(AttackerPlayerState);

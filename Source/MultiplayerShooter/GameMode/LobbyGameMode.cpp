@@ -35,9 +35,16 @@ void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
 					FString::Printf(TEXT("%s has joined the game!"), *PlayerName)
 					);
 			}
+
+			GEngine->AddOnScreenDebugMessage(
+				1,
+				60.f,
+				FColor::Yellow,
+				FString::Printf(TEXT("Players required: %d"), MinPlayers)
+				);
 		}
 
-		if(NumOfPlayers == 2)
+		if(NumOfPlayers == MinPlayers)
 		{
 			UWorld* World = GetWorld();
 			if(World)

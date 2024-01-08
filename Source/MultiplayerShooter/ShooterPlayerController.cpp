@@ -175,6 +175,7 @@ void AShooterPlayerController::SetHUDTime()
 		ShooterGameMode = ShooterGameMode == nullptr ? Cast<AShooterGameMode>(UGameplayStatics::GetGameMode(this)) : ShooterGameMode;
 		if(ShooterGameMode)
 		{
+			LevelStartingTime = ShooterGameMode->GetLevelStartingTime();
 			SecondsLeft = FMath::CeilToInt(ShooterGameMode->GetCountDownTime() + LevelStartingTime);
 		}
 	}

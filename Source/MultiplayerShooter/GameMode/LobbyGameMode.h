@@ -14,6 +14,9 @@ class MULTIPLAYERSHOOTER_API ALobbyGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 
+	UPROPERTY(EditAnywhere)
+	int32 MinPlayers = 2;
+
 public:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 	virtual void Logout(AController* Exiting) override;
