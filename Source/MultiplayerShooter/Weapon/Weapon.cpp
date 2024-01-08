@@ -39,9 +39,7 @@ void AWeapon::BeginPlay()
 	Super::BeginPlay();
 
 	if(PickupWidget)
-	{
 		PickupWidget->SetVisibility(false);
-	}
 
 	if(HasAuthority())
 	{
@@ -50,13 +48,6 @@ void AWeapon::BeginPlay()
 		AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnSphereOverlap);
 		AreaSphere->OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnSphereEndOverlap);
 	}
-}
-
-// Called every frame
-void AWeapon::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
 }
 
 void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -71,9 +62,7 @@ void AWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 {
 	AMultiplayerShooterCharacter* MultiplayerShooterCharacter = Cast<AMultiplayerShooterCharacter>(OtherActor);
 	if(MultiplayerShooterCharacter)
-	{
 		MultiplayerShooterCharacter->SetOverlappingWeapon(this);
-	}
 }
 
 void AWeapon::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -81,9 +70,7 @@ void AWeapon::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActo
 {
 	AMultiplayerShooterCharacter* MultiplayerShooterCharacter = Cast<AMultiplayerShooterCharacter>(OtherActor);
 	if(MultiplayerShooterCharacter)
-	{
 		MultiplayerShooterCharacter->SetOverlappingWeapon(nullptr);
-	}
 }
 
 void AWeapon::OnRep_WeaponState()
@@ -110,17 +97,13 @@ void AWeapon::OnRep_WeaponState()
 void AWeapon::ShowPickupWidget(bool bShowWidget)
 {
 	if(PickupWidget)
-	{
 		PickupWidget->SetVisibility(bShowWidget);
-	}
 }
 
 void AWeapon::Fire(const FVector& HitTarget)
 {
 	if(FireAnimation)
-	{
 		WeaponMesh->PlayAnimation(FireAnimation, false);
-	}
 }
 
 void AWeapon::Dropped()
@@ -145,9 +128,8 @@ void AWeapon::SetWeaponState(EWeaponState State)
 			break;
 		case EWeaponState::EWS_Dropped:
 			if(HasAuthority())
-			{
 				AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-			}
+		
 			WeaponMesh->SetSimulatePhysics(true);
 			WeaponMesh->SetEnableGravity(true);
 			WeaponMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
