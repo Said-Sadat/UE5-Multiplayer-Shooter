@@ -11,22 +11,24 @@ class MULTIPLAYERSHOOTER_API AProjectile : public AActor
 {
 	GENERATED_BODY()
 
-	class UParticleSystemComponent* TracerComponent;
-	
 	UPROPERTY(EditAnywhere)
 	class UBoxComponent* CollisionBox;
+
 	UPROPERTY(VisibleAnywhere)
 	class UProjectileMovementComponent* ProjectileMovementComponent;
+
 	UPROPERTY(EditAnywhere)
 	class UParticleSystem* Tracer;
+
+	class UParticleSystemComponent* TracerComponent;
+
 	UPROPERTY(EditAnywhere)
 	UParticleSystem* ImpactParticles;
+
 	UPROPERTY(EditAnywhere)
 	class USoundCue* ImpactSound;
-	
 public:	
 	AProjectile();
-	
 	virtual void Tick(float DeltaTime) override;
 	virtual void Destroyed() override;
 

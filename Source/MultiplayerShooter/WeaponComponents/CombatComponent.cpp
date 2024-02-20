@@ -40,8 +40,6 @@ void UCombatComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	Character = Cast<AMultiplayerShooterCharacter>(GetOwner());
-
 	if(Character)
 	{
 		Character->GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
@@ -71,7 +69,9 @@ void UCombatComponent::SetAiming(bool isAiming)
 	ServerSetAiming(isAiming);
 
 	if (Character)
+	{
 		Character->GetCharacterMovement()->MaxWalkSpeed = bIsAiming ? AimWalkSpeed : BaseWalkSpeed;
+	}
 }
 
 void UCombatComponent::InterpFOV(float DeltaTime)
@@ -79,12 +79,18 @@ void UCombatComponent::InterpFOV(float DeltaTime)
 	if(EquippedWeapon == nullptr) return;
 
 	if(bIsAiming)
+	{
 		CurrentFOV = FMath::FInterpTo(CurrentFOV, EquippedWeapon->GetZoomedFOV(), DeltaTime, EquippedWeapon->GetZoomInterpSpeed());
+	}
 	else
+	{
 		CurrentFOV = FMath::FInterpTo(CurrentFOV, DefaultFOV, DeltaTime, ZoomInterpSpeed);
+	}
 
 	if(Character && Character->GetFollowCamera())
+	{
 		Character->GetFollowCamera()->SetFieldOfView(CurrentFOV);
+	}
 }
 
 void UCombatComponent::FireButtonPressed(bool isPressed)
@@ -130,7 +136,9 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 {
 	FVector2D ViewportSize;
 	if(GEngine && GEngine->GameViewport)
+	{
 		GEngine->GameViewport->GetViewportSize(ViewportSize);
+	}
 
 	FVector2D CrosshairLocation(ViewportSize.X / 2.f, ViewportSize.Y / 2);
 	FVector CrosshairWorldPos;
@@ -169,7 +177,9 @@ void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
 				);
 
 			if(!TraceHitResult.bBlockingHit)
+			{
 				TraceHitResult.ImpactPoint = End;
+			}
 		}
 	}
 }
@@ -194,7 +204,9 @@ void UCombatComponent::ServerSetAiming_Implementation(bool isAiming)
 {
 	bIsAiming = isAiming;
 	if (Character)
+	{
 		Character->GetCharacterMovement()->MaxWalkSpeed = bIsAiming ? AimWalkSpeed : BaseWalkSpeed;
+	}
 }
 
 void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
@@ -206,7 +218,9 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	const USkeletalMeshSocket* WeaponSocket = Character->GetMesh()->GetSocketByName(FName("WeaponSocket"));
 
 	if(WeaponSocket)
+	{
 		WeaponSocket->AttachActor(EquippedWeapon, Character->GetMesh());
+	}
 
 	EquippedWeapon->SetOwner(Character);
 	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
@@ -221,7 +235,9 @@ void UCombatComponent::OnRep_EquippedWeapon()
 		const USkeletalMeshSocket* WeaponSocket = Character->GetMesh()->GetSocketByName(FName("WeaponSocket"));
 
 		if(WeaponSocket)
+		{
 			WeaponSocket->AttachActor(EquippedWeapon, Character->GetMesh());
+		}
 		
 		Character->GetCharacterMovement()->bOrientRotationToMovement = false;
 		Character->bUseControllerRotationYaw = true;

@@ -82,6 +82,16 @@ void AMultiplayerShooterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimePr
 	DOREPLIFETIME(AMultiplayerShooterCharacter, Health);
 }
 
+void AMultiplayerShooterCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	if(Combat)
+	{
+		Combat->Character = this;
+	}
+}
+
 void AMultiplayerShooterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -102,7 +112,9 @@ void AMultiplayerShooterCharacter::BeginPlay()
 	}
 	
 	if(HasAuthority())
+	{
 		OnTakeAnyDamage.AddDynamic(this, &ThisClass::ReceiveDamage);
+	}
 }
 
 void AMultiplayerShooterCharacter::Tick(float DeltaSeconds)
@@ -192,19 +204,25 @@ void AMultiplayerShooterCharacter::Look(const FInputActionValue& Value)
 void AMultiplayerShooterCharacter::Aim(const FInputActionValue& Value)
 {
 	if(Combat)
+	{
 		Combat->SetAiming(Value.Get<bool>());
+	}
 }
 
 void AMultiplayerShooterCharacter::FireButtonDown(const FInputActionValue& Value)
 {
 	if(Combat)
+	{
 		Combat->FireButtonPressed(Value.Get<bool>());
+	}
 }
 
 void AMultiplayerShooterCharacter::FireButtonReleased(const FInputActionValue& Value)
 {
 	if(Combat)
+	{
 		Combat->FireButtonPressed(false);
+	}
 }
 
 void AMultiplayerShooterCharacter::Equip(const FInputActionValue& Value)
@@ -212,23 +230,31 @@ void AMultiplayerShooterCharacter::Equip(const FInputActionValue& Value)
 	if(Combat)
 	{
 		if(HasAuthority())
+		{
 			Combat->EquipWeapon(OverlappingWeapon);
+		}
 		else
+		{
 			ServerEquipButtonPressed();
+		}
 	}
 }
 
 void AMultiplayerShooterCharacter::CrouchButtonPressed(const FInputActionValue& Value)
 {
 	if(bIsCrouched)
+	{
 		UnCrouch();
+	}
 	else
+	{
 		Crouch();
+	}
 }
 
 void AMultiplayerShooterCharacter::AimOffset(float DeltaTime)
 {
-	if(Combat && Combat->GetEquippedWeapon() == nullptr) return;
+	if(Combat && Combat->EquippedWeapon == nullptr) return;
 	
 	FVector Velocity = GetVelocity();
 	Velocity.Z = 0;
@@ -298,20 +324,24 @@ void AMultiplayerShooterCharacter::ReceiveDamage(AActor* DamagedActor, float Dam
 void AMultiplayerShooterCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 {
 	if(OverlappingWeapon)
+	{
 		OverlappingWeapon->ShowPickupWidget(false);
+	}
 	
 	OverlappingWeapon = Weapon;
 
 	if(IsLocallyControlled())
 	{
 		if(OverlappingWeapon)
+		{
 			OverlappingWeapon->ShowPickupWidget(true);
+		}
 	}
 }
 
 void AMultiplayerShooterCharacter::PlayFireMontage(bool isAiming)
 {
-	if(Combat == nullptr || Combat->GetEquippedWeapon() == nullptr) return;
+	if(Combat == nullptr || Combat->EquippedWeapon == nullptr) return;
 
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 
@@ -330,13 +360,17 @@ void AMultiplayerShooterCharacter::PlayDeathMontage()
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 
 	if(AnimInstance && DeathMontage)
+	{
 		AnimInstance->Montage_Play(DeathMontage);
+	}
 }
 
 void AMultiplayerShooterCharacter::Dead()
 {
-	if(Combat && Combat->GetEquippedWeapon())
-		Combat->GetEquippedWeapon()->Dropped();
+	if(Combat && Combat->EquippedWeapon)
+	{
+		Combat->EquippedWeapon->Dropped();
+	}
 	
 	MultiCastDead();
 	
@@ -354,7 +388,9 @@ void AMultiplayerShooterCharacter::MultiCastDead_Implementation()
 	GetCharacterMovement()->DisableMovement();
 	GetCharacterMovement()->StopMovementImmediately();
 	if(AShooterPlayerController* ShooterController = Cast<AShooterPlayerController>(Controller))
+	{
 		DisableInput(ShooterController);
+	}
 
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -378,12 +414,14 @@ void AMultiplayerShooterCharacter::DeadTimerFinished()
 {
 	AShooterGameMode* ShooterGameMode = GetWorld()->GetAuthGameMode<AShooterGameMode>();
 	if(ShooterGameMode)
+	{
 		ShooterGameMode->RequestRespawn(this, Controller);
+	}
 }
 
 void AMultiplayerShooterCharacter::PlayHitReactMontage()
 {
-	if(Combat == nullptr || Combat->GetEquippedWeapon() == nullptr) return;
+	if(Combat == nullptr || Combat->EquippedWeapon == nullptr) return;
 
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 
@@ -398,19 +436,19 @@ void AMultiplayerShooterCharacter::PlayHitReactMontage()
 
 bool AMultiplayerShooterCharacter::IsWeaponEquipped()
 {
-	return (Combat && Combat->GetEquippedWeapon());
+	return (Combat && Combat->EquippedWeapon);
 }
 
 bool AMultiplayerShooterCharacter::GetIsAiming()
 {
-	return Combat && Combat->GetIsAiming();
+	return Combat && Combat->bIsAiming;
 }
 
 FTransform AMultiplayerShooterCharacter::GetLeftHandTransform()
 {
-	if(Combat->GetEquippedWeapon() && Combat->GetEquippedWeapon()->GetWeaponMesh())
+	if(Combat->EquippedWeapon && Combat->EquippedWeapon->GetWeaponMesh())
 	{
-		LeftHandTransform = Combat->GetEquippedWeapon()->GetWeaponMesh()->GetSocketTransform(FName("LeftHandSocket"), RTS_World);
+		LeftHandTransform = Combat->EquippedWeapon->GetWeaponMesh()->GetSocketTransform(FName("LeftHandSocket"), RTS_World);
 		FVector OutPosition;
 		FRotator OutRotation;
 		GetMesh()->TransformToBoneSpace(FName("hand_r"), LeftHandTransform.GetLocation(), FRotator::ZeroRotator, OutPosition, OutRotation);
@@ -426,10 +464,14 @@ FTransform AMultiplayerShooterCharacter::GetLeftHandTransform()
 void AMultiplayerShooterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 {
 	if(OverlappingWeapon)
+	{
 		OverlappingWeapon->ShowPickupWidget(true);
+	}
 
 	if(LastWeapon)
+	{
 		LastWeapon->ShowPickupWidget(false);
+	}
 }
 
 float AMultiplayerShooterCharacter::GetYawOffset()
@@ -450,20 +492,26 @@ void AMultiplayerShooterCharacter::HideCloseCharacter()
 	{
 		GetMesh()->SetVisibility(false);
 
-		if(Combat && Combat->GetEquippedWeapon() && Combat->GetEquippedWeapon()->GetWeaponMesh())
-			Combat->GetEquippedWeapon()->GetWeaponMesh()->bOwnerNoSee = true;
+		if(Combat && Combat->EquippedWeapon && Combat->EquippedWeapon->GetWeaponMesh())
+		{
+			Combat->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = true;
+		}
 	}
 	else
 	{
 		GetMesh()->SetVisibility(true);
-		if(Combat && Combat->GetEquippedWeapon() && Combat->GetEquippedWeapon()->GetWeaponMesh())
-			Combat->GetEquippedWeapon()->GetWeaponMesh()->bOwnerNoSee = false;
+		if(Combat && Combat->EquippedWeapon && Combat->EquippedWeapon->GetWeaponMesh())
+		{
+			Combat->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = false;
+		}
 	}
 }
 
 void AMultiplayerShooterCharacter::ServerEquipButtonPressed_Implementation()
 {
 	if(Combat)
+	{
 		Combat->EquipWeapon(OverlappingWeapon);
+	}
 }
 

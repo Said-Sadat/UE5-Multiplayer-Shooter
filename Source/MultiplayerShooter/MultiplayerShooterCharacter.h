@@ -22,12 +22,13 @@ class AMultiplayerShooterCharacter : public ACharacter
 
 	float AO_Yaw;
 	float AO_Pitch;
-	bool IsInputSetup = false;
 	FRotator StartingAimRotation;
 	FTransform LeftHandTransform;
+	bool IsInputSetup = false;
 
 	class AShooterPlayerController* ShooterPlayerController;
 	class AShooterPlayerState* ShooterPlayerState;
+	void UpdateHUDHealth();
 
 	UPROPERTY(EditAnywhere, Category = "Player Stats")
 	float MaxHealth = 100.f;
@@ -39,6 +40,11 @@ class AMultiplayerShooterCharacter : public ACharacter
 	UPROPERTY(EditDefaultsOnly)
 	float DeadDelay = 3.f;
 	
+	UFUNCTION()
+	void OnRep_Health();
+
+	void DeadTimerFinished();
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* CameraBoom;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -80,8 +86,6 @@ class AMultiplayerShooterCharacter : public ACharacter
 
 public:
 	AMultiplayerShooterCharacter();
-	
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
@@ -90,8 +94,10 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE bool GetIsDead() const { return IsDead; }
+
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE float GetAO_Yaw() const { return AO_Yaw; }
+	
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE float GetAO_Pitch() const { return AO_Pitch; }
 
@@ -112,6 +118,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FTransform GetLeftHandTransform();
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void PostInitializeComponents() override;
+
 protected:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
@@ -127,6 +136,7 @@ protected:
 	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);
 			
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	
 	virtual void BeginPlay();
 	virtual void Tick(float DeltaSeconds) override;
 
@@ -140,11 +150,6 @@ private:
 	UFUNCTION(BlueprintCallable)
 	float GetYawOffset();
 
-	UFUNCTION()
-	void OnRep_Health();
-
 	void HideCloseCharacter();
 	void PlayHitReactMontage();
-	void UpdateHUDHealth();
-	void DeadTimerFinished();
 };
