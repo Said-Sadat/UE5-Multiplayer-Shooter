@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "InputActionValue.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
 #include "MultiplayerShooterCharacter.generated.h"
@@ -25,6 +26,9 @@ class AMultiplayerShooterCharacter : public ACharacter
 	FRotator StartingAimRotation;
 	FTransform LeftHandTransform;
 	bool IsInputSetup = false;
+	FVector2D MovementVector;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta= (AllowPrivateAccess = "true"))
+	float diveDirection;
 
 	class AShooterPlayerController* ShooterPlayerController;
 	class AShooterPlayerState* ShooterPlayerState;
@@ -60,6 +64,8 @@ class AMultiplayerShooterCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* MoveAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* DiveAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* AimAction;
@@ -76,6 +82,8 @@ class AMultiplayerShooterCharacter : public ACharacter
 	class UCombatComponent* Combat;
 	UPROPERTY(Replicated)
 	bool bIsAiming;
+
+	bool bIsDiving;
 
 	UPROPERTY(EditAnywhere, Category= Combat, meta=(AllowPrivateAccess = "true"))
 	class UAnimMontage* FireWeaponMontage;
@@ -100,6 +108,10 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE float GetAO_Pitch() const { return AO_Pitch; }
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE bool GetIsDiving() const { return bIsDiving; }
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE float GetDiveDirection() const { return diveDirection; }
 
 	void SetOverlappingWeapon(AWeapon* Weapon);
 	void PlayFireMontage(bool isAiming);
@@ -123,6 +135,7 @@ public:
 
 protected:
 	void Move(const FInputActionValue& Value);
+	void Dive(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	void Aim(const FInputActionValue& Value);
 	void FireButtonDown(const FInputActionValue& Value);
@@ -152,4 +165,5 @@ private:
 
 	void HideCloseCharacter();
 	void PlayHitReactMontage();
+	float GetAngleInDegrees(FVector VectorA, FVector VectorB);
 };

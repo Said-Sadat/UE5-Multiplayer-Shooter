@@ -149,6 +149,7 @@ void AMultiplayerShooterCharacter::SetupPlayerInputComponent(UInputComponent* Pl
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AMultiplayerShooterCharacter::Move);
+		EnhancedInputComponent->BindAction(DiveAction, ETriggerEvent::Triggered, this, &ThisClass::Dive);
 
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMultiplayerShooterCharacter::Look);
 
@@ -168,7 +169,7 @@ void AMultiplayerShooterCharacter::SetupPlayerInputComponent(UInputComponent* Pl
 void AMultiplayerShooterCharacter::Move(const FInputActionValue& Value)
 {
 	// input is a Vector2D
-	FVector2D MovementVector = Value.Get<FVector2D>();
+	MovementVector = Value.Get<FVector2D>();
 
 	if (Controller != nullptr)
 	{
@@ -186,6 +187,34 @@ void AMultiplayerShooterCharacter::Move(const FInputActionValue& Value)
 		AddMovementInput(ForwardDirection, MovementVector.Y);
 		AddMovementInput(RightDirection, MovementVector.X);
 	}
+}
+
+void AMultiplayerShooterCharacter::Dive(const FInputActionValue& Value)
+{
+	float angle = 0;
+	angle = GetAngleInDegrees(FollowCamera->GetForwardVector(),GetMesh()->GetForwardVector()) * 180/3.14;
+	
+	if(GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(
+			-1,
+			10.f,
+			FColor::Red,
+			FString(TEXT("Dive: %f"), angle)
+			);
+	}
+	UE_LOG(LogTemp, Warning, TEXT("Angle: %f"), angle);
+	bIsDiving = Value.Get<bool>();
+
+	if(MovementVector.X == 1)
+		diveDirection = 180;
+	if(MovementVector.X == -1)
+		diveDirection = 0;
+	if(MovementVector.Y == 1)
+		diveDirection = 90;
+	if(MovementVector.Y == -1)
+		diveDirection = -90;
+	
 }
 
 void AMultiplayerShooterCharacter::Look(const FInputActionValue& Value)
@@ -432,6 +461,18 @@ void AMultiplayerShooterCharacter::PlayHitReactMontage()
 		SectionName = FName("Front");
 		AnimInstance->Montage_JumpToSection(SectionName);
 	}
+}
+
+float AMultiplayerShooterCharacter::GetAngleInDegrees(FVector VectorA, FVector VectorB)
+{
+	VectorA.Z = 0;
+	VectorB.Z = 0;
+	VectorA.Normalize();
+	VectorB.Normalize();
+
+	float dotVector = FVector::DotProduct(VectorA, VectorB);
+
+	return FMath::Acos(dotVector);
 }
 
 bool AMultiplayerShooterCharacter::IsWeaponEquipped()
