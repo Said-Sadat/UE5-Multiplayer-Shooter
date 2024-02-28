@@ -134,6 +134,11 @@ void AMultiplayerShooterCharacter::Tick(float DeltaSeconds)
 		}
 	}
 
+	if(bIsDiving)
+	{
+		diveDirection = GetAngleInDegrees(FollowCamera->GetForwardVector(),GetMesh()->GetForwardVector());
+	}
+
 	AimOffset(DeltaSeconds);
 	HideCloseCharacter();
 	PollInit();
@@ -191,10 +196,12 @@ void AMultiplayerShooterCharacter::Move(const FInputActionValue& Value)
 
 void AMultiplayerShooterCharacter::Dive(const FInputActionValue& Value)
 {
-	float angle = 0;
-	angle = GetAngleInDegrees(FollowCamera->GetForwardVector(),GetMesh()->GetForwardVector()) * 180/3.14;
+	if(!Combat || !Combat->EquippedWeapon) return;
 	
-	if(GEngine)
+	float angle = 0;
+	angle = GetAngleInDegrees(FollowCamera->GetForwardVector(),GetMesh()->GetForwardVector());
+	
+	/*if(GEngine)
 	{
 		GEngine->AddOnScreenDebugMessage(
 			-1,
@@ -203,6 +210,7 @@ void AMultiplayerShooterCharacter::Dive(const FInputActionValue& Value)
 			FString(TEXT("Dive: %f"), angle)
 			);
 	}
+	*/
 	UE_LOG(LogTemp, Warning, TEXT("Angle: %f"), angle);
 	bIsDiving = Value.Get<bool>();
 
@@ -214,7 +222,27 @@ void AMultiplayerShooterCharacter::Dive(const FInputActionValue& Value)
 		diveDirection = 90;
 	if(MovementVector.Y == -1)
 		diveDirection = -90;
+
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	bUseControllerRotationYaw = false;
 	
+}
+
+float AMultiplayerShooterCharacter::GetAngleInDegrees(FVector VectorA, FVector VectorB)
+{
+	VectorA.Z = 0;
+	VectorB.Z = 0;
+	VectorA.Normalize();
+	VectorB.Normalize();
+	
+	float angle = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(VectorA, VectorB) / (VectorA.Size() * VectorB.Size())));
+	float sign = FVector::DotProduct(VectorA, VectorB) > 0 ? 1 : -1;
+	
+	UE_LOG(LogTemp, Error, TEXT("Angle: %f"), sign);
+	
+	angle *= sign;
+
+	return angle;
 }
 
 void AMultiplayerShooterCharacter::Look(const FInputActionValue& Value)
@@ -295,14 +323,14 @@ void AMultiplayerShooterCharacter::AimOffset(float DeltaTime)
 		FRotator CurrentAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
 		FRotator DeltaAimRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimRotation, StartingAimRotation);
 		AO_Yaw = DeltaAimRotation.Yaw;
-		bUseControllerRotationYaw = true;
+		//bUseControllerRotationYaw = true;
 	}
 
 	if(Speed > 0.f || isInAir)
 	{
 		StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
 		AO_Yaw = 0.f;
-		bUseControllerRotationYaw = true;
+		//bUseControllerRotationYaw = true;
 	}
 
 	AO_Pitch = GetBaseAimRotation().Pitch;
@@ -461,18 +489,6 @@ void AMultiplayerShooterCharacter::PlayHitReactMontage()
 		SectionName = FName("Front");
 		AnimInstance->Montage_JumpToSection(SectionName);
 	}
-}
-
-float AMultiplayerShooterCharacter::GetAngleInDegrees(FVector VectorA, FVector VectorB)
-{
-	VectorA.Z = 0;
-	VectorB.Z = 0;
-	VectorA.Normalize();
-	VectorB.Normalize();
-
-	float dotVector = FVector::DotProduct(VectorA, VectorB);
-
-	return FMath::Acos(dotVector);
 }
 
 bool AMultiplayerShooterCharacter::IsWeaponEquipped()

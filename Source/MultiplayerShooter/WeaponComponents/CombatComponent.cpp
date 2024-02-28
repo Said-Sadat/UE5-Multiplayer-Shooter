@@ -223,8 +223,8 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	}
 
 	EquippedWeapon->SetOwner(Character);
-	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
-	Character->bUseControllerRotationYaw = true;
+	//Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+	//Character->bUseControllerRotationYaw = true;
 }
 
 void UCombatComponent::OnRep_EquippedWeapon()
@@ -239,7 +239,7 @@ void UCombatComponent::OnRep_EquippedWeapon()
 			WeaponSocket->AttachActor(EquippedWeapon, Character->GetMesh());
 		}
 		
-		Character->GetCharacterMovement()->bOrientRotationToMovement = false;
-		Character->bUseControllerRotationYaw = true;
+		//Character->GetCharacterMovement()->bOrientRotationToMovement = false;
+		//Character->bUseControllerRotationYaw = true;
 	}
 }
