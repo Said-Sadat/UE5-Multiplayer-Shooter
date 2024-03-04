@@ -18,6 +18,7 @@
 #include "ShooterPlayerController.h"
 #include "GameMode/ShooterGameMode.h"
 #include "TimerManager.h"
+#include "Components/DivingComponent.h"
 #include "MultiplayerShooter/PlayerState/ShooterPlayerState.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
@@ -70,6 +71,9 @@ AMultiplayerShooterCharacter::AMultiplayerShooterCharacter()
 	Combat->SetIsReplicated(true);
 
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
+
+	DivingComponent = CreateDefaultSubobject<UDivingComponent>(TEXT("Diving Component"));
+	DivingComponent->SetIsReplicated(true);
 
 }
 
@@ -134,12 +138,6 @@ void AMultiplayerShooterCharacter::Tick(float DeltaSeconds)
 		}
 	}
 
-	if(bIsDiving)
-	{
-		diveDirection = GetAngleInDegrees(FollowCamera->GetForwardVector(),GetMesh()->GetForwardVector());
-		UE_LOG(LogTemp, Warning, TEXT("Angle: %f"), diveDirection);
-	}
-
 	AimOffset(DeltaSeconds);
 	HideCloseCharacter();
 	PollInit();
@@ -199,34 +197,10 @@ void AMultiplayerShooterCharacter::Dive(const FInputActionValue& Value)
 {
 	if(!Combat || !Combat->EquippedWeapon) return;
 	
-	bIsDiving = Value.Get<bool>();
-
-	if(MovementVector.X == 1)
-		diveDirection = 180;
-	if(MovementVector.X == -1)
-		diveDirection = 0;
-	if(MovementVector.Y == 1)
-		diveDirection = 90;
-	if(MovementVector.Y == -1)
-		diveDirection = -90;
-
+	DivingComponent->Dive(MovementVector);
+	
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	bUseControllerRotationYaw = false;
-	
-}
-
-float AMultiplayerShooterCharacter::GetAngleInDegrees(FVector VectorA, FVector VectorB)
-{
-	VectorA.Z = 0;
-	VectorB.Z = 0;
-	
-	float RadiansAngle = FMath::Acos(FVector::DotProduct(VectorA.GetSafeNormal(), VectorB.GetSafeNormal()));
-	FVector CrossProduct = FVector::CrossProduct(VectorA, VectorB);
-
-	float Sign = FMath::Sign(CrossProduct.Z);
-	float SignedDegreesAngle = FMath::RadiansToDegrees(RadiansAngle) * Sign;
-
-	return SignedDegreesAngle;
 }
 
 void AMultiplayerShooterCharacter::Look(const FInputActionValue& Value)

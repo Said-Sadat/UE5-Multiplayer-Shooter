@@ -3,6 +3,9 @@
 
 #include "DivingComponent.h"
 
+#include "MultiplayerShooter/MultiplayerShooterCharacter.h"
+#include "Camera/CameraComponent.h"
+
 // Sets default values for this component's properties
 UDivingComponent::UDivingComponent()
 {
@@ -11,6 +14,8 @@ UDivingComponent::UDivingComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 
 	// ...
+
+	ownerCharacter = Cast<AMultiplayerShooterCharacter>(GetOwner());
 }
 
 
@@ -23,12 +28,53 @@ void UDivingComponent::BeginPlay()
 	
 }
 
-
 // Called every frame
 void UDivingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// ...
+	
+	if(bIsDiving && ownerCharacter)
+	{
+		diveDirection = GetAngleInDegrees(ownerCharacter->GetFollowCamera()->GetForwardVector(), ownerCharacter->GetMesh()->GetForwardVector());
+		UE_LOG(LogTemp, Warning, TEXT("Angle: %f"), diveDirection);
+	}
 }
+
+void UDivingComponent::Dive(FVector2D MovementVector)
+{
+	bIsDiving = true;
+	
+	if(MovementVector.X == 1)
+		diveDirection = 180;
+	if(MovementVector.X == -1)
+		diveDirection = 0;
+	if(MovementVector.Y == 1)
+		diveDirection = 90;
+	if(MovementVector.Y == -1)
+		diveDirection = -90;
+}
+
+void UDivingComponent::SetIsDiving(bool isDiving)
+{
+	bIsDiving = isDiving;
+}
+
+float UDivingComponent::GetAngleInDegrees(FVector VectorA, FVector VectorB)
+{
+	VectorA.Z = 0;
+	VectorB.Z = 0;
+	
+	float RadiansAngle = FMath::Acos(FVector::DotProduct(VectorA.GetSafeNormal(), VectorB.GetSafeNormal()));
+	FVector CrossProduct = FVector::CrossProduct(VectorA, VectorB);
+
+	float Sign = FMath::Sign(CrossProduct.Z);
+	float SignedDegreesAngle = FMath::RadiansToDegrees(RadiansAngle) * Sign;
+
+	return SignedDegreesAngle;
+}
+
+
+
 

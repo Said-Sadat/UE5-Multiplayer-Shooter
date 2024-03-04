@@ -27,8 +27,6 @@ class AMultiplayerShooterCharacter : public ACharacter
 	FTransform LeftHandTransform;
 	bool IsInputSetup = false;
 	FVector2D MovementVector;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta= (AllowPrivateAccess = "true"))
-	float diveDirection;
 
 	class AShooterPlayerController* ShooterPlayerController;
 	class AShooterPlayerState* ShooterPlayerState;
@@ -80,10 +78,10 @@ class AMultiplayerShooterCharacter : public ACharacter
 	class AWeapon* OverlappingWeapon;
 	UPROPERTY(VisibleAnywhere)
 	class UCombatComponent* Combat;
+	UPROPERTY(VisibleAnywhere)
+	class UDivingComponent* DivingComponent;
 	UPROPERTY(Replicated)
 	bool bIsAiming;
-
-	bool bIsDiving;
 
 	UPROPERTY(EditAnywhere, Category= Combat, meta=(AllowPrivateAccess = "true"))
 	class UAnimMontage* FireWeaponMontage;
@@ -95,6 +93,9 @@ class AMultiplayerShooterCharacter : public ACharacter
 public:
 	AMultiplayerShooterCharacter();
 
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE class UDivingComponent* GetDivingComponent() const { return DivingComponent; }
+	
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 	FORCEINLINE float GetHealth() const { return Health; }
@@ -102,16 +103,10 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE bool GetIsDead() const { return IsDead; }
-
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE float GetAO_Yaw() const { return AO_Yaw; }
-	
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE float GetAO_Pitch() const { return AO_Pitch; }
-	UFUNCTION(BlueprintCallable)
-	FORCEINLINE bool GetIsDiving() const { return bIsDiving; }
-	UFUNCTION(BlueprintCallable)
-	FORCEINLINE float GetDiveDirection() const { return diveDirection; }
 
 	void SetOverlappingWeapon(AWeapon* Weapon);
 	void PlayFireMontage(bool isAiming);
@@ -165,5 +160,5 @@ private:
 
 	void HideCloseCharacter();
 	void PlayHitReactMontage();
-	float GetAngleInDegrees(FVector VectorA, FVector VectorB);
+	
 };
