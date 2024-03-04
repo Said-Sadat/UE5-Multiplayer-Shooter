@@ -137,6 +137,7 @@ void AMultiplayerShooterCharacter::Tick(float DeltaSeconds)
 	if(bIsDiving)
 	{
 		diveDirection = GetAngleInDegrees(FollowCamera->GetForwardVector(),GetMesh()->GetForwardVector());
+		UE_LOG(LogTemp, Warning, TEXT("Angle: %f"), diveDirection);
 	}
 
 	AimOffset(DeltaSeconds);
@@ -198,20 +199,6 @@ void AMultiplayerShooterCharacter::Dive(const FInputActionValue& Value)
 {
 	if(!Combat || !Combat->EquippedWeapon) return;
 	
-	float angle = 0;
-	angle = GetAngleInDegrees(FollowCamera->GetForwardVector(),GetMesh()->GetForwardVector());
-	
-	/*if(GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(
-			-1,
-			10.f,
-			FColor::Red,
-			FString(TEXT("Dive: %f"), angle)
-			);
-	}
-	*/
-	UE_LOG(LogTemp, Warning, TEXT("Angle: %f"), angle);
 	bIsDiving = Value.Get<bool>();
 
 	if(MovementVector.X == 1)
@@ -232,17 +219,14 @@ float AMultiplayerShooterCharacter::GetAngleInDegrees(FVector VectorA, FVector V
 {
 	VectorA.Z = 0;
 	VectorB.Z = 0;
-	VectorA.Normalize();
-	VectorB.Normalize();
 	
-	float angle = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(VectorA, VectorB) / (VectorA.Size() * VectorB.Size())));
-	float sign = FVector::DotProduct(VectorA, VectorB) > 0 ? 1 : -1;
-	
-	UE_LOG(LogTemp, Error, TEXT("Angle: %f"), sign);
-	
-	angle *= sign;
+	float RadiansAngle = FMath::Acos(FVector::DotProduct(VectorA.GetSafeNormal(), VectorB.GetSafeNormal()));
+	FVector CrossProduct = FVector::CrossProduct(VectorA, VectorB);
 
-	return angle;
+	float Sign = FMath::Sign(CrossProduct.Z);
+	float SignedDegreesAngle = FMath::RadiansToDegrees(RadiansAngle) * Sign;
+
+	return SignedDegreesAngle;
 }
 
 void AMultiplayerShooterCharacter::Look(const FInputActionValue& Value)
