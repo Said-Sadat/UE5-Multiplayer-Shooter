@@ -5,6 +5,7 @@
 
 #include "MultiplayerShooter/MultiplayerShooterCharacter.h"
 #include "Camera/CameraComponent.h"
+#include "GameFramework/PawnMovementComponent.h"
 
 // Sets default values for this component's properties
 UDivingComponent::UDivingComponent()
@@ -45,6 +46,11 @@ void UDivingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 void UDivingComponent::Dive(FVector2D MovementVector)
 {
 	bIsDiving = true;
+	
+	FVector MovementDirection = ownerCharacter->GetMovementComponent()->Velocity;
+	MovementDirection.Normalize();
+	MovementDirection.Z = 1;
+	ownerCharacter->LaunchCharacter(MovementDirection * 1000, false, false);
 	
 	if(MovementVector.X == 1)
 		diveDirection = 180;
