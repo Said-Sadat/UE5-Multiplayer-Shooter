@@ -40,11 +40,19 @@ void UDivingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	{
 		diveDirection = GetAngleInDegrees(ownerCharacter->GetFollowCamera()->GetForwardVector(), ownerCharacter->GetMesh()->GetForwardVector());
 		UE_LOG(LogTemp, Warning, TEXT("Angle: %f"), diveDirection);
+
+		if(!ownerCharacter->GetMovementComponent()->IsFalling())
+		{
+			bIsDiving = false;
+			ownerCharacter->GetController()->SetIgnoreMoveInput(false);
+		}
 	}
 }
 
 void UDivingComponent::Dive(FVector2D MovementVector)
 {
+	if(bIsDiving) return;
+	
 	bIsDiving = true;
 	
 	FVector MovementDirection = ownerCharacter->GetMovementComponent()->Velocity;
@@ -60,6 +68,8 @@ void UDivingComponent::Dive(FVector2D MovementVector)
 		diveDirection = 90;
 	if(MovementVector.Y == -1)
 		diveDirection = -90;
+
+	ownerCharacter->GetController()->SetIgnoreMoveInput(true);
 }
 
 void UDivingComponent::SetIsDiving(bool isDiving)
