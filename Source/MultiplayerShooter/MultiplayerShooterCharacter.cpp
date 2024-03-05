@@ -198,9 +198,6 @@ void AMultiplayerShooterCharacter::Dive(const FInputActionValue& Value)
 	if(!Combat || !Combat->EquippedWeapon) return;
 	
 	DivingComponent->Dive(MovementVector);
-	
-	GetCharacterMovement()->bOrientRotationToMovement = true;
-	bUseControllerRotationYaw = false;
 }
 
 void AMultiplayerShooterCharacter::Look(const FInputActionValue& Value)

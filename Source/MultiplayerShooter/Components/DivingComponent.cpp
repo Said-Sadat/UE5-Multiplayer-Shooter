@@ -5,6 +5,7 @@
 
 #include "MultiplayerShooter/MultiplayerShooterCharacter.h"
 #include "Camera/CameraComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PawnMovementComponent.h"
 
 // Sets default values for this component's properties
@@ -45,6 +46,9 @@ void UDivingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 		{
 			bIsDiving = false;
 			ownerCharacter->GetController()->SetIgnoreMoveInput(false);
+
+			//ownerCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
+			//ownerCharacter->bUseControllerRotationYaw = true;
 		}
 	}
 }
