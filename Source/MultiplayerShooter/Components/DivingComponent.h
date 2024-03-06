@@ -15,8 +15,11 @@ class MULTIPLAYERSHOOTER_API UDivingComponent : public UActorComponent
 
 	AMultiplayerShooterCharacter* ownerCharacter;
 
+	UPROPERTY(Replicated)
 	FVector2D diveDirection;
+	UPROPERTY(Replicated)
 	float diveRotation;
+	UPROPERTY(Replicated)
 	bool bIsDiving;
 
 public:	
@@ -25,9 +28,12 @@ public:
 	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
 	void Dive(FVector2D MovementVector);
-	void SetIsDiving(bool isDiving);
+
+	FORCEINLINE void SetOwnerCharacter(AMultiplayerShooterCharacter* ownerchar) { ownerCharacter = ownerchar; }
+	FORCEINLINE void SetIsDiving(bool isDiving) { bIsDiving = isDiving; }
 
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE bool GetIsDiving() const { return bIsDiving; }
@@ -39,7 +45,12 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
-	
+
+	UFUNCTION(Server, Reliable)
+	void ServerDive(FVector2D MovementVector);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MultiCastServerDive(FVector2D MovementVector);
 private:
 	float GetAngleInDegrees(FVector VectorA, FVector VectorB);
 };

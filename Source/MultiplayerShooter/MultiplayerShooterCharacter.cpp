@@ -91,9 +91,10 @@ void AMultiplayerShooterCharacter::PostInitializeComponents()
 	Super::PostInitializeComponents();
 
 	if(Combat)
-	{
 		Combat->Character = this;
-	}
+
+	if(DivingComponent)
+		DivingComponent->SetOwnerCharacter(this);
 }
 
 void AMultiplayerShooterCharacter::BeginPlay()

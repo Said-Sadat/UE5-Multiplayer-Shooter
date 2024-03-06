@@ -7,6 +7,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PawnMovementComponent.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values for this component's properties
 UDivingComponent::UDivingComponent()
@@ -15,18 +16,12 @@ UDivingComponent::UDivingComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
-	// ...
-
-	ownerCharacter = Cast<AMultiplayerShooterCharacter>(GetOwner());
 }
-
 
 // Called when the game starts
 void UDivingComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// ...
 	
 }
 
@@ -34,47 +29,63 @@ void UDivingComponent::BeginPlay()
 void UDivingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// ...
 	
 	if(bIsDiving && ownerCharacter)
 	{
 		diveRotation = GetAngleInDegrees(ownerCharacter->GetFollowCamera()->GetForwardVector(), ownerCharacter->GetMesh()->GetForwardVector());
-		UE_LOG(LogTemp, Warning, TEXT("Angle: %f"), diveRotation);
 
 		if(!ownerCharacter->GetMovementComponent()->IsFalling())
 		{
 			bIsDiving = false;
-			ownerCharacter->GetController()->SetIgnoreMoveInput(false);
 
+			if(ownerCharacter->GetController())
+				ownerCharacter->GetController()->SetIgnoreMoveInput(false);
+			
 			ownerCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
 			ownerCharacter->bUseControllerRotationYaw = true;
 		}
 	}
 }
 
+void UDivingComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UDivingComponent, bIsDiving);
+	DOREPLIFETIME(UDivingComponent, diveDirection);
+	DOREPLIFETIME(UDivingComponent, diveRotation);
+}
+
 void UDivingComponent::Dive(FVector2D MovementVector)
 {
 	if(bIsDiving) return;
 
+	ServerDive(MovementVector);
+}
+
+void UDivingComponent::ServerDive_Implementation(FVector2D MovementVector)
+{
+	bIsDiving = true;
+	
+	MultiCastServerDive(MovementVector);
+}
+
+void UDivingComponent::MultiCastServerDive_Implementation(FVector2D MovementVector)
+{
+	bIsDiving = true;
+	diveDirection = MovementVector;
+	
 	ownerCharacter->GetCharacterMovement()->bOrientRotationToMovement = true;
 	ownerCharacter->bUseControllerRotationYaw = false;
-	
-	bIsDiving = true;
 	
 	FVector MovementDirection = ownerCharacter->GetMovementComponent()->Velocity;
 	MovementDirection.Normalize();
 	MovementDirection.Z = 1;
+	
 	ownerCharacter->LaunchCharacter(MovementDirection * 1000, false, false);
 
-	diveDirection = MovementVector;
-
-	ownerCharacter->GetController()->SetIgnoreMoveInput(true);
-}
-
-void UDivingComponent::SetIsDiving(bool isDiving)
-{
-	bIsDiving = isDiving;
+	if(ownerCharacter->GetController())
+		ownerCharacter->GetController()->SetIgnoreMoveInput(true);
 }
 
 float UDivingComponent::GetAngleInDegrees(FVector VectorA, FVector VectorB)
@@ -90,7 +101,3 @@ float UDivingComponent::GetAngleInDegrees(FVector VectorA, FVector VectorB)
 
 	return SignedDegreesAngle;
 }
-
-
-
-
