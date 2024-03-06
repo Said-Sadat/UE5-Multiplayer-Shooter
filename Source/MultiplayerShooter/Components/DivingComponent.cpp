@@ -39,16 +39,16 @@ void UDivingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	
 	if(bIsDiving && ownerCharacter)
 	{
-		diveDirection = GetAngleInDegrees(ownerCharacter->GetFollowCamera()->GetForwardVector(), ownerCharacter->GetMesh()->GetForwardVector());
-		UE_LOG(LogTemp, Warning, TEXT("Angle: %f"), diveDirection);
+		diveRotation = GetAngleInDegrees(ownerCharacter->GetFollowCamera()->GetForwardVector(), ownerCharacter->GetMesh()->GetForwardVector());
+		UE_LOG(LogTemp, Warning, TEXT("Angle: %f"), diveRotation);
 
 		if(!ownerCharacter->GetMovementComponent()->IsFalling())
 		{
 			bIsDiving = false;
 			ownerCharacter->GetController()->SetIgnoreMoveInput(false);
 
-			//ownerCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
-			//ownerCharacter->bUseControllerRotationYaw = true;
+			ownerCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
+			ownerCharacter->bUseControllerRotationYaw = true;
 		}
 	}
 }
@@ -56,6 +56,9 @@ void UDivingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 void UDivingComponent::Dive(FVector2D MovementVector)
 {
 	if(bIsDiving) return;
+
+	ownerCharacter->GetCharacterMovement()->bOrientRotationToMovement = true;
+	ownerCharacter->bUseControllerRotationYaw = false;
 	
 	bIsDiving = true;
 	
@@ -63,15 +66,8 @@ void UDivingComponent::Dive(FVector2D MovementVector)
 	MovementDirection.Normalize();
 	MovementDirection.Z = 1;
 	ownerCharacter->LaunchCharacter(MovementDirection * 1000, false, false);
-	
-	if(MovementVector.X == 1)
-		diveDirection = 180;
-	if(MovementVector.X == -1)
-		diveDirection = 0;
-	if(MovementVector.Y == 1)
-		diveDirection = 90;
-	if(MovementVector.Y == -1)
-		diveDirection = -90;
+
+	diveDirection = MovementVector;
 
 	ownerCharacter->GetController()->SetIgnoreMoveInput(true);
 }

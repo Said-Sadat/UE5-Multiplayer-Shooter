@@ -15,7 +15,8 @@ class MULTIPLAYERSHOOTER_API UDivingComponent : public UActorComponent
 
 	AMultiplayerShooterCharacter* ownerCharacter;
 
-	float diveDirection;
+	FVector2D diveDirection;
+	float diveRotation;
 	bool bIsDiving;
 
 public:	
@@ -31,7 +32,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE bool GetIsDiving() const { return bIsDiving; }
 	UFUNCTION(BlueprintCallable)
-	FORCEINLINE float GetDiveDirection() const { return diveDirection; }
+	FORCEINLINE float GetDiveRotation() const { return diveRotation; }
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE FVector2D GetDiveDirection() const { return diveDirection; }
 
 protected:
 	// Called when the game starts
