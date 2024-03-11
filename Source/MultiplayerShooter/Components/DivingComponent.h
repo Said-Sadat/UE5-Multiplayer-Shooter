@@ -56,7 +56,7 @@ protected:
 	void ServerRPCDiveRotationRequest();
 
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastRPCDiveRotation(float diverotate);
+	void MulticastRPCDiveRotation(FVector CameraForward, FVector MeshForward);
 	
 private:
 	float GetAngleInDegrees(FVector VectorA, FVector VectorB);

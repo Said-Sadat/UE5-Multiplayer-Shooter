@@ -88,15 +88,13 @@ void UDivingComponent::MulticastRPCDive_Implementation(FVector2D MovementVector)
 
 void UDivingComponent::ServerRPCDiveRotationRequest_Implementation()
 {
-	diveRotation = GetAngleInDegrees(ownerCharacter->GetFollowCamera()->GetForwardVector(),
-			ownerCharacter->GetMesh()->GetForwardVector());
-	
-	MulticastRPCDiveRotation(diveRotation);
+	MulticastRPCDiveRotation(ownerCharacter->GetFollowCamera()->GetForwardVector(),
+		ownerCharacter->GetMesh()->GetForwardVector());
 }
 
-void UDivingComponent::MulticastRPCDiveRotation_Implementation(float diverotate)
+void UDivingComponent::MulticastRPCDiveRotation_Implementation(FVector CameraForward, FVector MeshForward)
 {
-	diveRotation = diverotate;
+	diveRotation = GetAngleInDegrees(CameraForward, MeshForward);
 }
 
 float UDivingComponent::GetAngleInDegrees(FVector VectorA, FVector VectorB)
