@@ -29,10 +29,10 @@ void UDivingComponent::BeginPlay()
 void UDivingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	
+
 	if(bIsDiving && ownerCharacter)
 	{
-		diveRotation = GetAngleInDegrees(ownerCharacter->GetFollowCamera()->GetForwardVector(), ownerCharacter->GetMesh()->GetForwardVector());
+		ServerRPCDiveRotationRequest();
 
 		if(!ownerCharacter->GetMovementComponent()->IsFalling())
 		{
@@ -59,33 +59,44 @@ void UDivingComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 void UDivingComponent::Dive(FVector2D MovementVector)
 {
 	if(bIsDiving) return;
-
-	ServerDive(MovementVector);
-}
-
-void UDivingComponent::ServerDive_Implementation(FVector2D MovementVector)
-{
-	bIsDiving = true;
 	
-	MultiCastServerDive(MovementVector);
+	ServerRPCDive(MovementVector);
 }
 
-void UDivingComponent::MultiCastServerDive_Implementation(FVector2D MovementVector)
+void UDivingComponent::ServerRPCDive_Implementation(FVector2D MovementVector)
+{
+	MulticastRPCDive(MovementVector);
+}
+
+void UDivingComponent::MulticastRPCDive_Implementation(FVector2D MovementVector)
 {
 	bIsDiving = true;
 	diveDirection = MovementVector;
-	
+
 	ownerCharacter->GetCharacterMovement()->bOrientRotationToMovement = true;
 	ownerCharacter->bUseControllerRotationYaw = false;
-	
+    
 	FVector MovementDirection = ownerCharacter->GetMovementComponent()->Velocity;
 	MovementDirection.Normalize();
 	MovementDirection.Z = 1;
-	
+    
 	ownerCharacter->LaunchCharacter(MovementDirection * 1000, false, false);
 
 	if(ownerCharacter->GetController())
 		ownerCharacter->GetController()->SetIgnoreMoveInput(true);
+}
+
+void UDivingComponent::ServerRPCDiveRotationRequest_Implementation()
+{
+	diveRotation = GetAngleInDegrees(ownerCharacter->GetFollowCamera()->GetForwardVector(),
+			ownerCharacter->GetMesh()->GetForwardVector());
+	
+	MulticastRPCDiveRotation(diveRotation);
+}
+
+void UDivingComponent::MulticastRPCDiveRotation_Implementation(float diverotate)
+{
+	diveRotation = diverotate;
 }
 
 float UDivingComponent::GetAngleInDegrees(FVector VectorA, FVector VectorB)

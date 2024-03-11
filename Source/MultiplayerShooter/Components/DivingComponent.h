@@ -47,10 +47,17 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION(Server, Reliable)
-	void ServerDive(FVector2D MovementVector);
+	void ServerRPCDive(FVector2D MovementVector);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void MultiCastServerDive(FVector2D MovementVector);
+	void MulticastRPCDive(FVector2D MovementVector);
+
+	UFUNCTION(Server, Reliable)
+	void ServerRPCDiveRotationRequest();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastRPCDiveRotation(float diverotate);
+	
 private:
 	float GetAngleInDegrees(FVector VectorA, FVector VectorB);
 };

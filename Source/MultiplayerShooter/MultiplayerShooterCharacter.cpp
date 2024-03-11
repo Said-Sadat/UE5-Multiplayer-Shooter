@@ -198,6 +198,8 @@ void AMultiplayerShooterCharacter::Dive(const FInputActionValue& Value)
 {
 	if(!Combat || !Combat->EquippedWeapon) return;
 	
+	if(GetMovementComponent()->Velocity.Size() == 0) return;
+	
 	DivingComponent->Dive(MovementVector);
 }
 
