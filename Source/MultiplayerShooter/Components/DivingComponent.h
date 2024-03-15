@@ -15,6 +15,8 @@ class MULTIPLAYERSHOOTER_API UDivingComponent : public UActorComponent
 
 	AMultiplayerShooterCharacter* ownerCharacter;
 
+	UPROPERTY(Replicated, EditDefaultsOnly, Category = "Dive Stats")
+	int diveCount;
 	UPROPERTY(Replicated)
 	FVector2D diveDirection;
 	UPROPERTY(Replicated)

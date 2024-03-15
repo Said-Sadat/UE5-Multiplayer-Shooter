@@ -16,6 +16,7 @@ UDivingComponent::UDivingComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
+	diveCount = 3;
 }
 
 // Called when the game starts
@@ -54,17 +55,27 @@ void UDivingComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(UDivingComponent, bIsDiving);
 	DOREPLIFETIME(UDivingComponent, diveDirection);
 	DOREPLIFETIME(UDivingComponent, diveRotation);
+	DOREPLIFETIME(UDivingComponent, diveCount);
 }
 
 void UDivingComponent::Dive(FVector2D MovementVector)
 {
-	if(bIsDiving) return;
+	if(bIsDiving || diveCount <= 0) return;
+	diveCount -= 1;
+
+	GEngine->AddOnScreenDebugMessage(
+		-1,
+		15.f,
+		FColor::Red,
+		FString::Printf(TEXT("Dive Count: %d"), diveCount));
 	
+	diveDirection = MovementVector;
 	ServerRPCDive(MovementVector);
 }
 
 void UDivingComponent::ServerRPCDive_Implementation(FVector2D MovementVector)
 {
+	diveDirection = MovementVector;
 	MulticastRPCDive(MovementVector);
 }
 
@@ -78,7 +89,7 @@ void UDivingComponent::MulticastRPCDive_Implementation(FVector2D MovementVector)
     
 	FVector MovementDirection = ownerCharacter->GetMovementComponent()->Velocity;
 	MovementDirection.Normalize();
-	MovementDirection.Z = 1;
+	MovementDirection.Z = 0.75f;
     
 	ownerCharacter->LaunchCharacter(MovementDirection * 1000, false, false);
 

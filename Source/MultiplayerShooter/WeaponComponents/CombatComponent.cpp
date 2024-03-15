@@ -24,7 +24,7 @@ UCombatComponent::UCombatComponent()
 	BaseWalkSpeed = 600.f;
 	AimWalkSpeed = 450.f;
 
-	CanFire = true;
+	bCanFire = true;
 }
 
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -93,18 +93,23 @@ void UCombatComponent::InterpFOV(float DeltaTime)
 	}
 }
 
+void UCombatComponent::Fire()
+{
+	if(CanFire())
+	{
+		bCanFire = false;
+		ServerFire(HitTarget.ImpactPoint);
+		StartFireTimer();
+	}
+}
+
 void UCombatComponent::FireButtonPressed(bool isPressed)
 {
 	IsFireButtonPressed = isPressed;
 
 	if(IsFireButtonPressed && EquippedWeapon)
 	{
-		if(CanFire)
-		{
-			CanFire = false;
-			ServerFire(HitTarget.ImpactPoint);
-			StartFireTimer();
-		}
+		Fire();
 	}
 }
 
@@ -124,12 +129,18 @@ void UCombatComponent::FireTimerFinish()
 {
 	if(!EquippedWeapon) return;
 	
-	CanFire = true;
+	bCanFire = true;
 	if(IsFireButtonPressed && EquippedWeapon->GetIsAutomatic())
 	{
-		ServerFire(HitTarget.ImpactPoint);
-		StartFireTimer();
+		Fire();
 	}
+}
+
+bool UCombatComponent::CanFire()
+{
+	if(!EquippedWeapon) return false;
+
+	return !EquippedWeapon->IsEmpty() && bCanFire;
 }
 
 void UCombatComponent::TraceUnderCrosshairs(FHitResult& TraceHitResult)
@@ -213,16 +224,18 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 {
 	if(Character == nullptr || WeaponToEquip == nullptr) return;
 
+	if(EquippedWeapon)
+		EquippedWeapon->Dropped();
+	
 	EquippedWeapon = WeaponToEquip;
 	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 	const USkeletalMeshSocket* WeaponSocket = Character->GetMesh()->GetSocketByName(FName("WeaponSocket"));
 
 	if(WeaponSocket)
-	{
 		WeaponSocket->AttachActor(EquippedWeapon, Character->GetMesh());
-	}
 
 	EquippedWeapon->SetOwner(Character);
+	EquippedWeapon->SetUIAmmo();
 	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
 	Character->bUseControllerRotationYaw = true;
 }

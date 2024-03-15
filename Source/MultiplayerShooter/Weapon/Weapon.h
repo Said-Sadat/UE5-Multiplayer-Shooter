@@ -18,6 +18,15 @@ enum class EWeaponState : uint8
 	EWS_MAX UMETA(DisplayName = "DefaultMax")
 };
 
+UENUM(BlueprintType)
+enum class EWeaponType : uint8
+{
+	EWT_Rifle UMETA(DisplayName = "Rifle Type"),
+	EWT_Pistol UMETA(DisplayName = "Pistol Type"),
+
+	EWT_MAX UMETA(DisplayName = "DefaultMax")
+};
+
 UCLASS()
 class MULTIPLAYERSHOOTER_API AWeapon : public AActor
 {
@@ -30,18 +39,24 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void OnRep_Owner() override;
 	virtual void Fire(const FVector& HitTarget);
-	void Dropped();
-	
-	void ShowPickupWidget(bool bShowWidget);
 
+	void SetUIAmmo();
+	void Dropped();
+	void ShowPickupWidget(bool bShowWidget);
 	void SetWeaponState(EWeaponState State);
+
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType; }
+	
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
 	FORCEINLINE float GetZoomedFOV() const { return ZoomedFOV; }
 	FORCEINLINE float GetZoomInterpSpeed() const { return ZoomInterpSpeed; }
 	FORCEINLINE float GetFireDelay() const { return FireDelay; }
 	FORCEINLINE bool GetIsAutomatic() const { return IsAutomatic; }
+	bool IsEmpty();
 	
 protected:
 	// Called when the game starts or when spawned
@@ -58,32 +73,43 @@ protected:
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
 	USkeletalMeshComponent* WeaponMesh;
-
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
 	USphereComponent* AreaSphere;
 
 	UPROPERTY(ReplicatedUsing = OnRep_WeaponState, VisibleAnywhere, Category = "Weapon Properties")
 	EWeaponState WeaponState;
-
-	UFUNCTION()
-	void OnRep_WeaponState();
+	UPROPERTY(Replicated, EditDefaultsOnly, Category = "Weapon Properties")
+	EWeaponType WeaponType;
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
 	class UWidgetComponent* PickupWidget;
-
 	UPROPERTY(EditAnywhere, Category= "Weapon Properties")
 	class UAnimationAsset* FireAnimation;
 
 	UPROPERTY(EditAnywhere)
 	float ZoomedFOV = 30.f;
-
 	UPROPERTY(EditAnywhere)
 	float ZoomInterpSpeed = 20.f;
+	
+	UPROPERTY(EditAnywhere, ReplicatedUsing = OnRep_Ammo)
+	int32 Ammo;
+	UPROPERTY(EditAnywhere)
+	int32 MagCapacity;
 
+	UPROPERTY()
+	class AMultiplayerShooterCharacter* OwnerCharacter;
+	UPROPERTY()
+	class AShooterPlayerController* OwnerController;
+	
 	UPROPERTY(EditAnywhere, Category= "Combat")
 	float FireDelay = .15f;
-
 	UPROPERTY(EditAnywhere, Category= "Combat")
 	bool IsAutomatic = true;
-	
+
+	UFUNCTION()
+	void OnRep_WeaponState();
+	UFUNCTION()
+	void OnRep_Ammo();
+
+	void SpendRound();
 };

@@ -24,6 +24,9 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE AWeapon* GetEquippedWeapon() const { return EquippedWeapon; }
+	
 	void EquipWeapon(AWeapon* WeaponToEquip);
 	
 protected:
@@ -37,6 +40,7 @@ protected:
 	UFUNCTION()
 	void OnRep_EquippedWeapon();
 
+	void Fire();
 	void FireButtonPressed(bool isPressed);
 
 	UFUNCTION(Server, Reliable)
@@ -75,8 +79,10 @@ private:
 
 	FTimerHandle FireTimer;
 
-	bool CanFire = true;
+	bool bCanFire = true;
 
 	void StartFireTimer();
 	void FireTimerFinish();
+
+	bool CanFire();
 };

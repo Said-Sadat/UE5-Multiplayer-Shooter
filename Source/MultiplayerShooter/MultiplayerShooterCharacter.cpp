@@ -398,6 +398,10 @@ void AMultiplayerShooterCharacter::Dead()
 
 void AMultiplayerShooterCharacter::MultiCastDead_Implementation()
 {
+	if(ShooterPlayerController)
+	{
+		ShooterPlayerController->SetUIWeaponAmmo(0);
+	}
 	IsDead = true;
 	PlayDeathMontage();
 	GetCharacterMovement()->DisableMovement();

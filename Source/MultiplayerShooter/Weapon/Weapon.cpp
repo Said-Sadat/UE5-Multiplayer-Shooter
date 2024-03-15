@@ -6,6 +6,8 @@
 #include "Components/WidgetComponent.h"
 #include "MultiplayerShooter/MultiplayerShooterCharacter.h"
 #include "Net/UnrealNetwork.h"
+#include "MultiplayerShooter/MultiplayerShooterCharacter.h"
+#include "MultiplayerShooter/ShooterPlayerController.h"
 
 // Sets default values
 AWeapon::AWeapon()
@@ -31,6 +33,11 @@ AWeapon::AWeapon()
 	PickupWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("Pickup Widget"));
 	PickupWidget->SetupAttachment(RootComponent);
 	
+}
+
+bool AWeapon::IsEmpty()
+{
+	return Ammo <= 0;
 }
 
 // Called when the game starts or when spawned
@@ -64,6 +71,7 @@ void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AWeapon, WeaponState);
+	DOREPLIFETIME(AWeapon, Ammo);
 }
 
 void AWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
@@ -107,6 +115,42 @@ void AWeapon::OnRep_WeaponState()
 	}
 }
 
+void AWeapon::SetUIAmmo()
+{
+	OwnerCharacter = OwnerCharacter == nullptr ? Cast<AMultiplayerShooterCharacter>(GetOwner()) : OwnerCharacter;
+
+	if(OwnerCharacter)
+	{
+		OwnerController = OwnerController == nullptr ? Cast<AShooterPlayerController>(OwnerCharacter->Controller) : OwnerController;
+
+		if(OwnerController)
+			OwnerController->SetUIWeaponAmmo(Ammo);
+	}
+}
+
+void AWeapon::SpendRound()
+{
+	Ammo = FMath::Clamp(Ammo - 1, 0, MagCapacity);
+	SetUIAmmo();
+}
+
+void AWeapon::OnRep_Ammo()
+{
+	SetUIAmmo();
+}
+
+void AWeapon::OnRep_Owner()
+{
+	Super::OnRep_Owner();
+	if(Owner == nullptr)
+	{
+		OwnerCharacter = nullptr;
+		OwnerController = nullptr;
+	}
+	else
+		SetUIAmmo();
+}
+
 void AWeapon::ShowPickupWidget(bool bShowWidget)
 {
 	if(PickupWidget)
@@ -118,9 +162,9 @@ void AWeapon::ShowPickupWidget(bool bShowWidget)
 void AWeapon::Fire(const FVector& HitTarget)
 {
 	if(FireAnimation)
-	{
 		WeaponMesh->PlayAnimation(FireAnimation, false);
-	}
+	
+	SpendRound();
 }
 
 void AWeapon::Dropped()
@@ -129,6 +173,8 @@ void AWeapon::Dropped()
 	FDetachmentTransformRules DetachRules(EDetachmentRule::KeepWorld, true);
 	WeaponMesh->DetachFromComponent(DetachRules);
 	SetOwner(nullptr);
+	OwnerCharacter = nullptr;
+	OwnerController = nullptr;
 }
 
 void AWeapon::SetWeaponState(EWeaponState State)

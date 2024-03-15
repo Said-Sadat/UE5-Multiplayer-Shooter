@@ -95,6 +95,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE class UDivingComponent* GetDivingComponent() const { return DivingComponent; }
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE UCombatComponent* GetCombatComponent() const { return Combat; }
 	
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }

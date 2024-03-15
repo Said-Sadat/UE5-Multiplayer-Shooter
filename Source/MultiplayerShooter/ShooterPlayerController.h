@@ -69,6 +69,7 @@ public:
 	void SetUIHealth(float Health, float MaxHealth);
 	void SetUIScore(float Score);
 	void SetUIDeathCount(float Deaths);
+	void SetUIWeaponAmmo(int32 Ammo);
 	void SetUITimer(float RemainingTime);
 	void SetUIAnnouncementTime(float RemainingTime);
 	void OnMatchStateSet(FName State);
