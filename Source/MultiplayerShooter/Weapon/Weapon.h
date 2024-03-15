@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "WeaponTypes.h"
 #include "Weapon.generated.h"
 
 class USphereComponent;
@@ -16,15 +17,6 @@ enum class EWeaponState : uint8
 	EWS_Dropped UMETA(DisplayName = "Dropped"),
 	
 	EWS_MAX UMETA(DisplayName = "DefaultMax")
-};
-
-UENUM(BlueprintType)
-enum class EWeaponType : uint8
-{
-	EWT_Rifle UMETA(DisplayName = "Rifle Type"),
-	EWT_Pistol UMETA(DisplayName = "Pistol Type"),
-
-	EWT_MAX UMETA(DisplayName = "DefaultMax")
 };
 
 UCLASS()
@@ -47,9 +39,7 @@ public:
 	void ShowPickupWidget(bool bShowWidget);
 	void SetWeaponState(EWeaponState State);
 
-	UFUNCTION(BlueprintCallable)
 	FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType; }
-	
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
 	FORCEINLINE float GetZoomedFOV() const { return ZoomedFOV; }
@@ -78,7 +68,7 @@ private:
 
 	UPROPERTY(ReplicatedUsing = OnRep_WeaponState, VisibleAnywhere, Category = "Weapon Properties")
 	EWeaponState WeaponState;
-	UPROPERTY(Replicated, EditDefaultsOnly, Category = "Weapon Properties")
+	UPROPERTY(EditAnywhere)
 	EWeaponType WeaponType;
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
@@ -95,7 +85,7 @@ private:
 	int32 Ammo;
 	UPROPERTY(EditAnywhere)
 	int32 MagCapacity;
-
+	
 	UPROPERTY()
 	class AMultiplayerShooterCharacter* OwnerCharacter;
 	UPROPERTY()

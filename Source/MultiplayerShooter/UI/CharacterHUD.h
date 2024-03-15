@@ -30,8 +30,13 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* MatchTimerText;
 
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* CarriedAmmoAmount;
+
 	void SetHealthBarPercent(float Health, float MaxHealth);
 	void SetScoreText(float Score);
 	void SetDeathAmount(int Deaths);
 	void SetTimerText(float RemainingTime);
+	void SetAmmoAmount(int32 Ammo);
+	void SetCarriedAmount(int32 CarriedAmmo);
 };

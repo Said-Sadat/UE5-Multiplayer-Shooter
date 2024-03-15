@@ -336,16 +336,22 @@ void AShooterPlayerController::SetUIWeaponAmmo(int32 Ammo)
 
 	if(isHudValid)
 	{
-		FString AmmoText = FString::Printf(TEXT("%d"), Ammo);
-		ShooterHUD->GetCharacterHUD()->WeaponAmmoAmount->SetText(FText::FromString(AmmoText));
+		CharacterHUD->SetAmmoAmount(Ammo);
 	}
-	/*
-	else
+}
+
+void AShooterPlayerController::SetUICarriedAmmo(int32 CarriedAmmo)
+{
+	ShooterHUD = ShooterHUD == nullptr ? Cast<AShooterHUD>(GetHUD()) : ShooterHUD;
+
+	bool isHudValid = ShooterHUD &&
+		ShooterHUD->GetCharacterHUD() &&
+			ShooterHUD->GetCharacterHUD()->WeaponAmmoAmount;
+
+	if(isHudValid)
 	{
-		InitializeCharacterHUD = true;
-		HUDDeaths = Deaths;
+		CharacterHUD->SetCarriedAmount(CarriedAmmo);
 	}
-	*/
 }
 
 void AShooterPlayerController::SetUITimer(float RemainingTime)
