@@ -13,12 +13,14 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "Weapon/Weapon.h"
-#include "WeaponComponents/CombatComponent.h"
+#include "Combat/CombatComponent.h"
 #include "MultiplayerShooter.h"
 #include "ShooterPlayerController.h"
 #include "GameMode/ShooterGameMode.h"
 #include "TimerManager.h"
+#include "Combat/CombatComponent.h"
 #include "Components/DivingComponent.h"
+#include "Weapon/WeaponTypes.h"
 #include "MultiplayerShooter/PlayerState/ShooterPlayerState.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
@@ -164,6 +166,8 @@ void AMultiplayerShooterCharacter::SetupPlayerInputComponent(UInputComponent* Pl
 
 		EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Triggered, this, &ThisClass::Equip);
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &ThisClass::CrouchButtonPressed);
+
+		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Triggered, this, &ThisClass::Reload);
 	}
 	else
 	{
@@ -302,6 +306,12 @@ void AMultiplayerShooterCharacter::AimOffset(float DeltaTime)
 	}
 }
 
+void AMultiplayerShooterCharacter::Reload()
+{
+	if(Combat)
+		Combat->Reload();
+}
+
 void AMultiplayerShooterCharacter::PollInit()
 {
 	if(ShooterPlayerState == nullptr)
@@ -336,6 +346,19 @@ void AMultiplayerShooterCharacter::ReceiveDamage(AActor* DamagedActor, float Dam
 	}
 }
 
+ECombatState AMultiplayerShooterCharacter::GetCombatState() const
+{
+	if(Combat)
+		return Combat->CombatState;
+
+	return ECombatState::ECS_MAX;
+}
+
+bool AMultiplayerShooterCharacter::UseFABRIK()
+{
+	return GetCombatState() != ECombatState::ECS_Reloading;
+}
+
 void AMultiplayerShooterCharacter::SetOverlappingWeapon(AWeapon* Weapon)
 {
 	if(OverlappingWeapon)
@@ -368,6 +391,28 @@ void AMultiplayerShooterCharacter::PlayFireMontage(bool isAiming)
 		AnimInstance->Montage_JumpToSection(SectionName);
 	}
 	
+}
+
+void AMultiplayerShooterCharacter::PlayReloadMontage()
+{
+	if(Combat == nullptr || Combat->EquippedWeapon == nullptr) return;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
+	if(AnimInstance && ReloadMontage)
+	{
+		AnimInstance->Montage_Play(ReloadMontage);
+		FName SectionName;
+
+		switch (Combat->EquippedWeapon->GetWeaponType())
+		{
+		case EWeaponType::EWT_AssaultRifle:
+			SectionName = FName("Rifle");
+			break;
+		}
+		
+		AnimInstance->Montage_JumpToSection(SectionName);
+	}
 }
 
 void AMultiplayerShooterCharacter::PlayDeathMontage()

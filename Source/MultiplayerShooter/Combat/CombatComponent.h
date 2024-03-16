@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "CombatState.h"
 #include "MultiplayerShooter/Weapon/WeaponTypes.h"
 
 #include "CombatComponent.generated.h"
@@ -31,6 +32,10 @@ public:
 	FORCEINLINE AWeapon* GetEquippedWeapon() const { return EquippedWeapon; }
 	
 	void EquipWeapon(AWeapon* WeaponToEquip);
+	void Reload();
+	
+	UFUNCTION(BlueprintCallable)
+	void FinishReloading();
 	
 protected:
 	// Called when the game starts
@@ -52,11 +57,21 @@ protected:
 	UFUNCTION(NetMulticast, Reliable)
 	void MultiCastFire(const FVector_NetQuantize& TraceHitTarget);
 
+	UFUNCTION(Server, Reliable)
+	void ServerRPCReload();
+
+	void HandleReload();
 	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
 
 private:
 	AMultiplayerShooterCharacter* Character;
 	AShooterPlayerController* Controller;
+
+	UPROPERTY(ReplicatedUsing = OnRep_CombatState)
+	ECombatState CombatState = ECombatState::ECS_Unoccupied;
+
+	UFUNCTION()
+	void OnRep_CombatState();
 	
 	UPROPERTY(Replicated)
 	bool bIsAiming;
