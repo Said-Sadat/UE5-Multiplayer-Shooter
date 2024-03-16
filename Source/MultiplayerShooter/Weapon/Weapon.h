@@ -28,12 +28,16 @@ public:
 	// Sets default values for this actor's properties
 	AWeapon();
 
+	UPROPERTY(EditAnywhere)
+	class USoundCue* EquipSound;
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void OnRep_Owner() override;
 	virtual void Fire(const FVector& HitTarget);
 
+	void AddAmmo(int32 AmmoToAdd);
 	void SetUIAmmo();
 	void Dropped();
 	void ShowPickupWidget(bool bShowWidget);
@@ -46,6 +50,8 @@ public:
 	FORCEINLINE float GetZoomInterpSpeed() const { return ZoomInterpSpeed; }
 	FORCEINLINE float GetFireDelay() const { return FireDelay; }
 	FORCEINLINE bool GetIsAutomatic() const { return IsAutomatic; }
+	FORCEINLINE int32 GetAmmo() const { return Ammo; }
+	FORCEINLINE int32 GetMagCapacity() const { return MagCapacity; }
 	bool IsEmpty();
 	
 protected:

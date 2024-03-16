@@ -61,6 +61,7 @@ protected:
 	void ServerRPCReload();
 
 	void HandleReload();
+	int32 AmountToReload();
 	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
 
 private:
@@ -111,6 +112,7 @@ private:
 	int32 StartingARAmmo = 30;
 	
 	void InitializeCarriedAmmo();
+	void UpdateAmmoValues();
 	void StartFireTimer();
 	void FireTimerFinish();
 	bool CanFire();
