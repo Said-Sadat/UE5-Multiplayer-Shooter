@@ -224,6 +224,8 @@ void AMultiplayerShooterCharacter::Aim(const FInputActionValue& Value)
 {
 	if(Combat)
 	{
+		if(GetMovementComponent()->IsFalling()) return;
+		
 		Combat->SetAiming(Value.Get<bool>());
 	}
 }

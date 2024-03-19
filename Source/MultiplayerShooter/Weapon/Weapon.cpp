@@ -40,6 +40,11 @@ bool AWeapon::IsEmpty()
 	return Ammo <= 0;
 }
 
+bool AWeapon::IsFull()
+{
+	return Ammo == MagCapacity;
+}
+
 // Called when the game starts or when spawned
 void AWeapon::BeginPlay()
 {
