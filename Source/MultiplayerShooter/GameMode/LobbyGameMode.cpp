@@ -50,7 +50,7 @@ void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
 			if(World)
 			{
 				bUseSeamlessTravel = true;
-				World->ServerTravel(FString("/Game/Blueprints/Maps/MainMap?listen"));
+				World->ServerTravel(FString("/Game/Blueprints/Maps/Map1?listen"));
 			}
 		}
 	}

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "WeaponTypes.h"
 #include "Weapon.generated.h"
 
 class USphereComponent;
@@ -18,15 +19,6 @@ enum class EWeaponState : uint8
 	EWS_MAX UMETA(DisplayName = "DefaultMax")
 };
 
-UENUM(BlueprintType)
-enum class EWeaponType : uint8
-{
-	EWT_Rifle UMETA(DisplayName = "Rifle Type"),
-	EWT_Pistol UMETA(DisplayName = "Pistol Type"),
-
-	EWT_MAX UMETA(DisplayName = "DefaultMax")
-};
-
 UCLASS()
 class MULTIPLAYERSHOOTER_API AWeapon : public AActor
 {
@@ -36,27 +28,32 @@ public:
 	// Sets default values for this actor's properties
 	AWeapon();
 
+	UPROPERTY(EditAnywhere)
+	class USoundCue* EquipSound;
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void OnRep_Owner() override;
 	virtual void Fire(const FVector& HitTarget);
 
+	void AddAmmo(int32 AmmoToAdd);
 	void SetUIAmmo();
 	void Dropped();
 	void ShowPickupWidget(bool bShowWidget);
 	void SetWeaponState(EWeaponState State);
 
-	UFUNCTION(BlueprintCallable)
 	FORCEINLINE EWeaponType GetWeaponType() const { return WeaponType; }
-	
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
 	FORCEINLINE float GetZoomedFOV() const { return ZoomedFOV; }
 	FORCEINLINE float GetZoomInterpSpeed() const { return ZoomInterpSpeed; }
 	FORCEINLINE float GetFireDelay() const { return FireDelay; }
 	FORCEINLINE bool GetIsAutomatic() const { return IsAutomatic; }
+	FORCEINLINE int32 GetAmmo() const { return Ammo; }
+	FORCEINLINE int32 GetMagCapacity() const { return MagCapacity; }
 	bool IsEmpty();
+	bool IsFull();
 	
 protected:
 	// Called when the game starts or when spawned
@@ -78,7 +75,7 @@ private:
 
 	UPROPERTY(ReplicatedUsing = OnRep_WeaponState, VisibleAnywhere, Category = "Weapon Properties")
 	EWeaponState WeaponState;
-	UPROPERTY(Replicated, EditDefaultsOnly, Category = "Weapon Properties")
+	UPROPERTY(EditAnywhere)
 	EWeaponType WeaponType;
 
 	UPROPERTY(VisibleAnywhere, Category = "Weapon Properties")
@@ -95,7 +92,7 @@ private:
 	int32 Ammo;
 	UPROPERTY(EditAnywhere)
 	int32 MagCapacity;
-
+	
 	UPROPERTY()
 	class AMultiplayerShooterCharacter* OwnerCharacter;
 	UPROPERTY()

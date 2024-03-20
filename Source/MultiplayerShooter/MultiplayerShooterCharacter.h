@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "InputActionValue.h"
 #include "GameFramework/Character.h"
+#include "Combat/CombatState.h"
 #include "Logging/LogMacros.h"
 #include "MultiplayerShooterCharacter.generated.h"
 
@@ -73,10 +74,12 @@ class AMultiplayerShooterCharacter : public ACharacter
 	UInputAction* CrouchAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* FireAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* ReloadAction;
 
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
 	class AWeapon* OverlappingWeapon;
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UCombatComponent* Combat;
 	UPROPERTY(VisibleAnywhere)
 	class UDivingComponent* DivingComponent;
@@ -86,9 +89,12 @@ class AMultiplayerShooterCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, Category= Combat, meta=(AllowPrivateAccess = "true"))
 	class UAnimMontage* FireWeaponMontage;
 	UPROPERTY(EditAnywhere, Category= Combat, meta=(AllowPrivateAccess = "true"))
+	class UAnimMontage* ReloadMontage;
+	UPROPERTY(EditAnywhere, Category= Combat, meta=(AllowPrivateAccess = "true"))
 	class UAnimMontage* HitReactMontage;
 	UPROPERTY(EditAnywhere, Category= Combat, meta=(AllowPrivateAccess = "true"))
 	class UAnimMontage* DeathMontage;
+	
 
 public:
 	AMultiplayerShooterCharacter();
@@ -110,8 +116,14 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE float GetAO_Pitch() const { return AO_Pitch; }
 
+	ECombatState GetCombatState() const;
+
+	UFUNCTION(BlueprintCallable)
+	bool UseFABRIK();
+
 	void SetOverlappingWeapon(AWeapon* Weapon);
 	void PlayFireMontage(bool isAiming);
+	void PlayReloadMontage();
 	void PlayDeathMontage();
 
 	void Dead();
@@ -140,6 +152,7 @@ protected:
 	void Equip(const FInputActionValue& Value);
 	void CrouchButtonPressed(const FInputActionValue& Value);
 	void AimOffset(float DeltaTime);
+	void Reload();
 	void PollInit();
 
 	UFUNCTION()

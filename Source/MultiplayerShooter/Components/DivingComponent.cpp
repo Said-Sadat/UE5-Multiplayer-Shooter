@@ -60,6 +60,7 @@ void UDivingComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
 void UDivingComponent::Dive(FVector2D MovementVector)
 {
+	
 	if(bIsDiving || diveCount <= 0) return;
 	diveCount -= 1;
 

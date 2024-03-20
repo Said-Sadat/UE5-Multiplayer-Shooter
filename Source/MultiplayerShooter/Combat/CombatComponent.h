@@ -4,10 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "CombatState.h"
+#include "MultiplayerShooter/Weapon/WeaponTypes.h"
+
 #include "CombatComponent.generated.h"
 
 #define TRACE_LENGTH 100000.f
 
+class AShooterPlayerController;
 class AWeapon;
 class AMultiplayerShooterCharacter;
 
@@ -28,6 +32,10 @@ public:
 	FORCEINLINE AWeapon* GetEquippedWeapon() const { return EquippedWeapon; }
 	
 	void EquipWeapon(AWeapon* WeaponToEquip);
+	void Reload();
+	
+	UFUNCTION(BlueprintCallable)
+	void FinishReloading();
 	
 protected:
 	// Called when the game starts
@@ -49,11 +57,23 @@ protected:
 	UFUNCTION(NetMulticast, Reliable)
 	void MultiCastFire(const FVector_NetQuantize& TraceHitTarget);
 
+	UFUNCTION(Server, Reliable)
+	void ServerRPCReload();
+
+	void HandleReload();
+	int32 AmountToReload();
 	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
 
 private:
 	AMultiplayerShooterCharacter* Character;
+	AShooterPlayerController* Controller;
 
+	UPROPERTY(ReplicatedUsing = OnRep_CombatState)
+	ECombatState CombatState = ECombatState::ECS_Unoccupied;
+
+	UFUNCTION()
+	void OnRep_CombatState();
+	
 	UPROPERTY(Replicated)
 	bool bIsAiming;
 	
@@ -78,11 +98,22 @@ private:
 	void InterpFOV(float DeltaTime);
 
 	FTimerHandle FireTimer;
-
 	bool bCanFire = true;
 
+	UPROPERTY(ReplicatedUsing = OnRep_CarriedAmmo)
+	int32 CarriedAmmo;
+	
+	UFUNCTION()
+	void OnRep_CarriedAmmo();
+
+	TMap<EWeaponType, int32> CarriedAmmoMap;
+
+	UPROPERTY(EditAnywhere)
+	int32 StartingARAmmo = 30;
+	
+	void InitializeCarriedAmmo();
+	void UpdateAmmoValues();
 	void StartFireTimer();
 	void FireTimerFinish();
-
 	bool CanFire();
 };

@@ -31,3 +31,15 @@ void UCharacterHUD::SetTimerText(float RemainingTime)
 	FString TimerText = FString::Printf(TEXT("%02d:%02d"), Minutes, Seconds);
 	MatchTimerText->SetText(FText::FromString(TimerText));
 }
+
+void UCharacterHUD::SetAmmoAmount(int32 Ammo)
+{
+	FString AmmoText = FString::Printf(TEXT("Ammo: %d"), Ammo);
+	WeaponAmmoAmount->SetText(FText::FromString(AmmoText));
+}
+
+void UCharacterHUD::SetCarriedAmount(int32 CarriedAmmo)
+{
+	FString AmmoText = FString::Printf(TEXT("/ %d"), CarriedAmmo);
+	CarriedAmmoAmount->SetText(FText::FromString(AmmoText));
+}
