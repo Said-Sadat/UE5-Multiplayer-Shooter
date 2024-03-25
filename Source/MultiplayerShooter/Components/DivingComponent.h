@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "TimerManager.h"
 #include "DivingComponent.generated.h"
 
 class AMultiplayerShooterCharacter;
@@ -21,10 +22,15 @@ class MULTIPLAYERSHOOTER_API UDivingComponent : public UActorComponent
 	FVector2D diveDirection;
 	UPROPERTY(Replicated)
 	float diveRotation;
+
 	UPROPERTY(Replicated)
-	bool bIsDiving;
+	bool CanExitDive;
+
+	FTimerHandle DiveTimer;
 
 public:	
+	UPROPERTY(Replicated, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	bool bIsDiving;
 	// Sets default values for this component's properties
 	UDivingComponent();
 	
@@ -59,6 +65,9 @@ protected:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastRPCDiveRotation(FVector CameraForward, FVector MeshForward);
+
+	UFUNCTION()
+	void On_RepCanLeaveDive();
 	
 private:
 	float GetAngleInDegrees(FVector VectorA, FVector VectorB);

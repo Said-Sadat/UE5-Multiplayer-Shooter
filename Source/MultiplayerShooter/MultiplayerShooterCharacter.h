@@ -27,6 +27,8 @@ class AMultiplayerShooterCharacter : public ACharacter
 	FRotator StartingAimRotation;
 	FTransform LeftHandTransform;
 	bool IsInputSetup = false;
+
+	UPROPERTY(Replicated)
 	FVector2D MovementVector;
 
 	class AShooterPlayerController* ShooterPlayerController;
@@ -115,6 +117,8 @@ public:
 	FORCEINLINE float GetAO_Yaw() const { return AO_Yaw; }
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE float GetAO_Pitch() const { return AO_Pitch; }
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE FVector2D GetMovementVector() const { return MovementVector; }
 
 	ECombatState GetCombatState() const;
 

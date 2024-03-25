@@ -31,16 +31,15 @@ void UDivingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if(bIsDiving && ownerCharacter)
+	if(bIsDiving && ownerCharacter && ownerCharacter->GetController())
 	{
 		ServerRPCDiveRotationRequest();
 
-		if(!ownerCharacter->GetMovementComponent()->IsFalling())
+		if(!ownerCharacter->GetMovementComponent()->IsFalling() && CanExitDive)
 		{
 			bIsDiving = false;
 
-			if(ownerCharacter->GetController())
-				ownerCharacter->GetController()->SetIgnoreMoveInput(false);
+			ownerCharacter->GetController()->SetIgnoreMoveInput(false);
 			
 			ownerCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
 			ownerCharacter->bUseControllerRotationYaw = true;
@@ -56,46 +55,47 @@ void UDivingComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(UDivingComponent, diveDirection);
 	DOREPLIFETIME(UDivingComponent, diveRotation);
 	DOREPLIFETIME(UDivingComponent, diveCount);
+	DOREPLIFETIME(UDivingComponent, CanExitDive);
 }
 
 void UDivingComponent::Dive(FVector2D MovementVector)
 {
+	if(ownerCharacter->GetMovementComponent()->Velocity.Size() == 0) return;
 	
 	if(bIsDiving || diveCount <= 0) return;
-	diveCount -= 1;
 
-	GEngine->AddOnScreenDebugMessage(
-		-1,
-		15.f,
-		FColor::Red,
-		FString::Printf(TEXT("Dive Count: %d"), diveCount));
-	
-	diveDirection = MovementVector;
+	diveCount -= 1;
+	bIsDiving = true;
+
 	ServerRPCDive(MovementVector);
 }
 
 void UDivingComponent::ServerRPCDive_Implementation(FVector2D MovementVector)
 {
+	bIsDiving = true;
 	diveDirection = MovementVector;
 	MulticastRPCDive(MovementVector);
-}
+ }
 
 void UDivingComponent::MulticastRPCDive_Implementation(FVector2D MovementVector)
 {
-	bIsDiving = true;
-	diveDirection = MovementVector;
-
-	ownerCharacter->GetCharacterMovement()->bOrientRotationToMovement = true;
-	ownerCharacter->bUseControllerRotationYaw = false;
-    
 	FVector MovementDirection = ownerCharacter->GetMovementComponent()->Velocity;
 	MovementDirection.Normalize();
 	MovementDirection.Z = 0.75f;
-    
+
 	ownerCharacter->LaunchCharacter(MovementDirection * 1000, false, false);
+	
+	bIsDiving = true;
+	CanExitDive = false;
+	diveDirection = MovementVector;
+	
+	ownerCharacter->GetCharacterMovement()->bOrientRotationToMovement = true;
+	ownerCharacter->bUseControllerRotationYaw = false;
 
 	if(ownerCharacter->GetController())
 		ownerCharacter->GetController()->SetIgnoreMoveInput(true);
+
+	ownerCharacter->GetWorldTimerManager().SetTimer(DiveTimer, this, &ThisClass::On_RepCanLeaveDive, 0.3f);
 }
 
 void UDivingComponent::ServerRPCDiveRotationRequest_Implementation()
@@ -107,6 +107,11 @@ void UDivingComponent::ServerRPCDiveRotationRequest_Implementation()
 void UDivingComponent::MulticastRPCDiveRotation_Implementation(FVector CameraForward, FVector MeshForward)
 {
 	diveRotation = GetAngleInDegrees(CameraForward, MeshForward);
+}
+
+void UDivingComponent::On_RepCanLeaveDive()
+{
+	CanExitDive = true;
 }
 
 float UDivingComponent::GetAngleInDegrees(FVector VectorA, FVector VectorB)
