@@ -22,7 +22,6 @@ class MULTIPLAYERSHOOTER_API UDivingComponent : public UActorComponent
 	FVector2D diveDirection;
 	UPROPERTY(Replicated)
 	float diveRotation;
-
 	UPROPERTY(Replicated)
 	bool CanExitDive;
 
@@ -34,15 +33,18 @@ public:
 	// Sets default values for this component's properties
 	UDivingComponent();
 	
+	void Dive(FVector2D MovementVector);
+
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	
-	void Dive(FVector2D MovementVector);
 
 	FORCEINLINE void SetOwnerCharacter(AMultiplayerShooterCharacter* ownerchar) { ownerCharacter = ownerchar; }
 	FORCEINLINE void SetIsDiving(bool isDiving) { bIsDiving = isDiving; }
 
+	UFUNCTION(BlueprintCallable)
+	void ShouldStartMoving(bool shouldMove);
+	
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE bool GetIsDiving() const { return bIsDiving; }
 	UFUNCTION(BlueprintCallable)
@@ -56,19 +58,15 @@ protected:
 
 	UFUNCTION(Server, Reliable)
 	void ServerRPCDive(FVector2D MovementVector);
-
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastRPCDive(FVector2D MovementVector);
 
 	UFUNCTION(Server, Reliable)
 	void ServerRPCDiveRotationRequest();
-
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastRPCDiveRotation(FVector CameraForward, FVector MeshForward);
 
-	UFUNCTION()
-	void On_RepCanLeaveDive();
-	
 private:
+	void CanLeaveDive();
 	float GetAngleInDegrees(FVector VectorA, FVector VectorB);
 };

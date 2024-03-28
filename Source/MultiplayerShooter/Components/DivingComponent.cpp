@@ -36,14 +36,7 @@ void UDivingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 		ServerRPCDiveRotationRequest();
 
 		if(!ownerCharacter->GetMovementComponent()->IsFalling() && CanExitDive)
-		{
 			bIsDiving = false;
-
-			ownerCharacter->GetController()->SetIgnoreMoveInput(false);
-			
-			ownerCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
-			ownerCharacter->bUseControllerRotationYaw = true;
-		}
 	}
 }
 
@@ -70,6 +63,28 @@ void UDivingComponent::Dive(FVector2D MovementVector)
 	ServerRPCDive(MovementVector);
 }
 
+void UDivingComponent::ShouldStartMoving(bool shouldMove)
+{
+	if(!ownerCharacter) return;
+	
+	if(shouldMove)
+	{
+		if(ownerCharacter->GetController())
+			ownerCharacter->GetController()->SetIgnoreMoveInput(false);
+
+		ownerCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
+		ownerCharacter->bUseControllerRotationYaw = true;
+	}
+	else
+	{
+		if(ownerCharacter->GetController())
+			ownerCharacter->GetController()->SetIgnoreMoveInput(true);
+		
+		ownerCharacter->GetCharacterMovement()->bOrientRotationToMovement = true;
+		ownerCharacter->bUseControllerRotationYaw = false;
+	}
+}
+
 void UDivingComponent::ServerRPCDive_Implementation(FVector2D MovementVector)
 {
 	bIsDiving = true;
@@ -88,14 +103,8 @@ void UDivingComponent::MulticastRPCDive_Implementation(FVector2D MovementVector)
 	bIsDiving = true;
 	CanExitDive = false;
 	diveDirection = MovementVector;
-	
-	ownerCharacter->GetCharacterMovement()->bOrientRotationToMovement = true;
-	ownerCharacter->bUseControllerRotationYaw = false;
 
-	if(ownerCharacter->GetController())
-		ownerCharacter->GetController()->SetIgnoreMoveInput(true);
-
-	ownerCharacter->GetWorldTimerManager().SetTimer(DiveTimer, this, &ThisClass::On_RepCanLeaveDive, 0.3f);
+	ownerCharacter->GetWorldTimerManager().SetTimer(DiveTimer, this, &ThisClass::CanLeaveDive, 0.3f);
 }
 
 void UDivingComponent::ServerRPCDiveRotationRequest_Implementation()
@@ -109,7 +118,7 @@ void UDivingComponent::MulticastRPCDiveRotation_Implementation(FVector CameraFor
 	diveRotation = GetAngleInDegrees(CameraForward, MeshForward);
 }
 
-void UDivingComponent::On_RepCanLeaveDive()
+void UDivingComponent::CanLeaveDive()
 {
 	CanExitDive = true;
 }
