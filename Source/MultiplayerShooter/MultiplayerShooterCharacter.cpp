@@ -97,7 +97,10 @@ void AMultiplayerShooterCharacter::PostInitializeComponents()
 		Combat->Character = this;
 
 	if(DivingComponent)
+	{
 		DivingComponent->SetOwnerCharacter(this);
+		DivingComponent->SetOwnerController(Cast<AShooterPlayerController>(GetController()));
+	}
 }
 
 void AMultiplayerShooterCharacter::BeginPlay()

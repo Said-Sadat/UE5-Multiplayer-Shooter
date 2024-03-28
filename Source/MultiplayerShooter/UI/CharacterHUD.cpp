@@ -11,6 +11,12 @@ void UCharacterHUD::SetHealthBarPercent(float Health, float MaxHealth)
 	HealthBar->SetPercent(Health / MaxHealth);
 }
 
+void UCharacterHUD::SetDiveCount(int count)
+{
+	FString DiveText = FString::Printf(TEXT("Dive Count: %d"), count);
+	DiveCount->SetText(FText::FromString(DiveText));
+}
+
 void UCharacterHUD::SetScoreText(float Score)
 {
 	FString ScoreText = FString::Printf(TEXT("Score: %d"), FMath::FloorToInt(Score));

@@ -288,6 +288,25 @@ void AShooterPlayerController::SetUIHealth(float Health, float MaxHealth)
 	}
 }
 
+void AShooterPlayerController::SetUIDiveCount(int diveCount)
+{
+	ShooterHUD = ShooterHUD == nullptr ? Cast<AShooterHUD>(GetHUD()) : ShooterHUD;
+
+	bool isHudValid = ShooterHUD &&
+		ShooterHUD->GetCharacterHUD() &&
+			ShooterHUD->GetCharacterHUD()->DiveCount;
+
+	if(isHudValid)
+	{
+		ShooterHUD->GetCharacterHUD()->SetDiveCount(diveCount);
+	}
+	else
+	{
+		InitializeCharacterHUD = true;
+		HUDDiveCount = diveCount;
+	}
+}
+
 void AShooterPlayerController::SetUIScore(float Score)
 {
 	ShooterHUD = ShooterHUD == nullptr ? Cast<AShooterHUD>(GetHUD()) : ShooterHUD;

@@ -19,6 +19,9 @@ public:
 	class UProgressBar* HealthBar;
 
 	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* DiveCount;
+	
+	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* ScoreAmount;
 	
 	UPROPERTY(meta = (BindWidget))
@@ -34,6 +37,7 @@ public:
 	UTextBlock* CarriedAmmoAmount;
 
 	void SetHealthBarPercent(float Health, float MaxHealth);
+	void SetDiveCount(int count);
 	void SetScoreText(float Score);
 	void SetDeathAmount(int Deaths);
 	void SetTimerText(float RemainingTime);

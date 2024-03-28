@@ -4,6 +4,7 @@
 #include "DivingComponent.h"
 
 #include "MultiplayerShooter/MultiplayerShooterCharacter.h"
+#include "MultiplayerShooter/ShooterPlayerController.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PawnMovementComponent.h"
@@ -23,7 +24,14 @@ UDivingComponent::UDivingComponent()
 void UDivingComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	if(ownerCharacter)
+	{
+		OwnerController = Cast<AShooterPlayerController>(ownerCharacter->GetController());
+		
+		if(OwnerController)
+			OwnerController->SetUIDiveCount(diveCount);
+	}
 }
 
 // Called every frame
@@ -58,6 +66,10 @@ void UDivingComponent::Dive(FVector2D MovementVector)
 	if(bIsDiving || diveCount <= 0) return;
 
 	diveCount -= 1;
+
+	if(OwnerController)
+		OwnerController->SetUIDiveCount(diveCount);
+	
 	bIsDiving = true;
 
 	ServerRPCDive(MovementVector);
@@ -137,4 +149,10 @@ float UDivingComponent::GetAngleInDegrees(FVector VectorA, FVector VectorB)
 	float SignedDegreesAngle = FMath::RadiansToDegrees(RadiansAngle) * Sign;
 
 	return SignedDegreesAngle;
+}
+
+void UDivingComponent::OnRep_DiveCount()
+{
+	if(OwnerController)
+		OwnerController->SetUIDiveCount(diveCount);
 }
