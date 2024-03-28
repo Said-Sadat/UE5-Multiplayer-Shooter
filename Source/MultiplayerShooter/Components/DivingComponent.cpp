@@ -104,6 +104,8 @@ void UDivingComponent::MulticastRPCDive_Implementation(FVector2D MovementVector)
 	CanExitDive = false;
 	diveDirection = MovementVector;
 
+	ShouldStartMoving(false);
+
 	ownerCharacter->GetWorldTimerManager().SetTimer(DiveTimer, this, &ThisClass::CanLeaveDive, 0.3f);
 }
 
