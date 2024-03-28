@@ -15,9 +15,10 @@ class MULTIPLAYERSHOOTER_API UDivingComponent : public UActorComponent
 	GENERATED_BODY()
 
 	AMultiplayerShooterCharacter* ownerCharacter;
+	FTimerHandle DiveTimer;
 
-	UPROPERTY(Replicated, EditDefaultsOnly, Category = "Dive Stats")
-	int diveCount;
+	UPROPERTY(Replicated)
+	bool bIsDiving;
 	UPROPERTY(Replicated)
 	FVector2D diveDirection;
 	UPROPERTY(Replicated)
@@ -25,11 +26,10 @@ class MULTIPLAYERSHOOTER_API UDivingComponent : public UActorComponent
 	UPROPERTY(Replicated)
 	bool CanExitDive;
 
-	FTimerHandle DiveTimer;
+	UPROPERTY(Replicated, EditDefaultsOnly, Category = "Dive Stats")
+	int diveCount;
 
 public:	
-	UPROPERTY(Replicated, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	bool bIsDiving;
 	// Sets default values for this component's properties
 	UDivingComponent();
 	
