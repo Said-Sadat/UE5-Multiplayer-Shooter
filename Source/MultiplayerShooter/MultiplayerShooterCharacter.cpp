@@ -86,6 +86,7 @@ void AMultiplayerShooterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimePr
 	DOREPLIFETIME_CONDITION(AMultiplayerShooterCharacter, OverlappingWeapon, COND_OwnerOnly);
 	DOREPLIFETIME(AMultiplayerShooterCharacter, bIsAiming);
 	DOREPLIFETIME(AMultiplayerShooterCharacter, Health);
+	DOREPLIFETIME(AMultiplayerShooterCharacter, MovementVector);
 }
 
 void AMultiplayerShooterCharacter::PostInitializeComponents()
@@ -96,7 +97,10 @@ void AMultiplayerShooterCharacter::PostInitializeComponents()
 		Combat->Character = this;
 
 	if(DivingComponent)
+	{
 		DivingComponent->SetOwnerCharacter(this);
+		DivingComponent->SetOwnerController(Cast<AShooterPlayerController>(GetController()));
+	}
 }
 
 void AMultiplayerShooterCharacter::BeginPlay()
@@ -200,11 +204,8 @@ void AMultiplayerShooterCharacter::Move(const FInputActionValue& Value)
 
 void AMultiplayerShooterCharacter::Dive(const FInputActionValue& Value)
 {
-	if(!Combat || !Combat->EquippedWeapon) return;
-	
-	if(GetMovementComponent()->Velocity.Size() == 0) return;
-	
-	DivingComponent->Dive(MovementVector);
+	if(DivingComponent && Combat->EquippedWeapon)
+		DivingComponent->Dive(MovementVector);
 }
 
 void AMultiplayerShooterCharacter::Look(const FInputActionValue& Value)

@@ -24,7 +24,7 @@ class MULTIPLAYERSHOOTER_API AShooterPlayerController : public APlayerController
 	float CooldownTime = 0.f;
 	uint32 CountdownInt = 0;
 	bool InitializeCharacterHUD = false;
-	float HUDHealth, HUDMaxHealth, HUDScore, HUDDeaths;
+	float HUDHealth, HUDMaxHealth, HUDScore, HUDDeaths, HUDDiveCount;
 
 	UPROPERTY(ReplicatedUsing = OnRep_MatchState)
 	FName MatchState;
@@ -67,6 +67,7 @@ public:
 	virtual void ReceivedPlayer() override;
 
 	void SetUIHealth(float Health, float MaxHealth);
+	void SetUIDiveCount(int diveCount);
 	void SetUIScore(float Score);
 	void SetUIDeathCount(float Deaths);
 	void SetUIWeaponAmmo(int32 Ammo);

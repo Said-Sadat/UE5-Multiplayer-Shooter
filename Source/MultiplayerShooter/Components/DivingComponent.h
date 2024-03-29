@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "TimerManager.h"
 #include "DivingComponent.generated.h"
 
+class AShooterPlayerController;
 class AMultiplayerShooterCharacter;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -13,30 +15,41 @@ class MULTIPLAYERSHOOTER_API UDivingComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
+	AShooterPlayerController* OwnerController;
 	AMultiplayerShooterCharacter* ownerCharacter;
+	FTimerHandle DiveTimer;
 
-	UPROPERTY(Replicated, EditDefaultsOnly, Category = "Dive Stats")
-	int diveCount;
+	UPROPERTY(Replicated)
+	bool bIsDiving;
 	UPROPERTY(Replicated)
 	FVector2D diveDirection;
 	UPROPERTY(Replicated)
 	float diveRotation;
 	UPROPERTY(Replicated)
-	bool bIsDiving;
+	bool CanExitDive;
+
+	UPROPERTY(ReplicatedUsing = OnRep_DiveCount, EditDefaultsOnly, Category = "Dive Stats")
+	int diveCount;
 
 public:	
 	// Sets default values for this component's properties
 	UDivingComponent();
 	
+	void Dive(FVector2D MovementVector);
+
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	
-	void Dive(FVector2D MovementVector);
 
 	FORCEINLINE void SetOwnerCharacter(AMultiplayerShooterCharacter* ownerchar) { ownerCharacter = ownerchar; }
+	FORCEINLINE void SetOwnerController(AShooterPlayerController* OwnerContr) { OwnerController = OwnerContr; }
 	FORCEINLINE void SetIsDiving(bool isDiving) { bIsDiving = isDiving; }
 
+	UFUNCTION(BlueprintCallable)
+	void ShouldStartMoving(bool shouldMove);
+	
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE int GetDiveCount() const { return diveCount; }
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE bool GetIsDiving() const { return bIsDiving; }
 	UFUNCTION(BlueprintCallable)
@@ -50,16 +63,18 @@ protected:
 
 	UFUNCTION(Server, Reliable)
 	void ServerRPCDive(FVector2D MovementVector);
-
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastRPCDive(FVector2D MovementVector);
 
 	UFUNCTION(Server, Reliable)
 	void ServerRPCDiveRotationRequest();
-
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastRPCDiveRotation(FVector CameraForward, FVector MeshForward);
-	
+
 private:
+	void CanLeaveDive();
 	float GetAngleInDegrees(FVector VectorA, FVector VectorB);
+
+	UFUNCTION()
+	void OnRep_DiveCount();
 };
