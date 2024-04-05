@@ -21,13 +21,14 @@ class MULTIPLAYERSHOOTER_API AHitScanWeapon : public AWeapon
 	UPROPERTY(EditAnywhere, Category = "Weapon Scatter")
 	bool bUseScatter = false;
 
+protected:
 	UPROPERTY(EditAnywhere)
 	float Damage = 20.f;
 	UPROPERTY(EditAnywhere)
 	class UParticleSystem* ImpactParticles;
-
-protected:
+	
 	FVector TraceEndWithScatter(const FVector& TraceStart, const FVector& HitTarget);
+	void WeaponTraceHit(const FVector& TraceStart, const FVector& HitTarget, FHitResult& OutHit);
 
 public:
 	virtual void Fire(const FVector& HitTarget) override;
