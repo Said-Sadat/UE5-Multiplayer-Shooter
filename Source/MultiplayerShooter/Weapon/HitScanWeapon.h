@@ -21,6 +21,9 @@ class MULTIPLAYERSHOOTER_API AHitScanWeapon : public AWeapon
 	UPROPERTY(EditAnywhere, Category = "Weapon Scatter")
 	bool bUseScatter = false;
 
+	UPROPERTY(EditAnywhere)
+	UParticleSystem* BeamParticles;
+
 protected:
 	UPROPERTY(EditAnywhere)
 	float Damage = 20.f;
