@@ -473,6 +473,15 @@ void AMultiplayerShooterCharacter::MultiCastDead_Implementation()
 
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	bool HideSniperScope = IsLocallyControlled() &&
+		Combat &&
+		Combat->bIsAiming &&
+		Combat->EquippedWeapon &&
+		Combat->EquippedWeapon->GetWeaponType() == EWeaponType::EWT_SniperRifle;
+	
+	if(HideSniperScope)
+		ShowSniperScopeWidget(false);
 }
 
 void AMultiplayerShooterCharacter::UpdateHUDHealth()
