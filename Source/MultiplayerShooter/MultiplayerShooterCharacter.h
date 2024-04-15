@@ -120,6 +120,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE FVector2D GetMovementVector() const { return MovementVector; }
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void ShowSniperScopeWidget(bool bShowScope);
+
 	ECombatState GetCombatState() const;
 
 	UFUNCTION(BlueprintCallable)

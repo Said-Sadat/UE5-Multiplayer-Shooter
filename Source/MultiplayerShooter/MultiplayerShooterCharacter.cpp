@@ -412,6 +412,18 @@ void AMultiplayerShooterCharacter::PlayReloadMontage()
 		case EWeaponType::EWT_AssaultRifle:
 			SectionName = FName("Rifle");
 			break;
+		case EWeaponType::EWT_RocketLauncher:
+			SectionName = FName("Rifle");
+			break;
+		case EWeaponType::EWT_Pistol:
+			SectionName = FName("Pistol");
+			break;
+		case EWeaponType::EWT_Shotgun:
+			SectionName = FName("Shotgun");
+			break;
+		case EWeaponType::EWT_SniperRifle:
+			SectionName = FName("Sniper");
+			break;
 		}
 		
 		AnimInstance->Montage_JumpToSection(SectionName);
@@ -461,6 +473,15 @@ void AMultiplayerShooterCharacter::MultiCastDead_Implementation()
 
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	bool HideSniperScope = IsLocallyControlled() &&
+		Combat &&
+		Combat->bIsAiming &&
+		Combat->EquippedWeapon &&
+		Combat->EquippedWeapon->GetWeaponType() == EWeaponType::EWT_SniperRifle;
+	
+	if(HideSniperScope)
+		ShowSniperScopeWidget(false);
 }
 
 void AMultiplayerShooterCharacter::UpdateHUDHealth()

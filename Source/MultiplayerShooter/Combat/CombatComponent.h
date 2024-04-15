@@ -9,8 +9,6 @@
 
 #include "CombatComponent.generated.h"
 
-#define TRACE_LENGTH 100000.f
-
 class AShooterPlayerController;
 class AWeapon;
 class AMultiplayerShooterCharacter;
@@ -109,7 +107,15 @@ private:
 	TMap<EWeaponType, int32> CarriedAmmoMap;
 
 	UPROPERTY(EditAnywhere)
+	int32 StartingPistolAmmo = 15;
+	UPROPERTY(EditAnywhere)
 	int32 StartingARAmmo = 30;
+	UPROPERTY(EditAnywhere)
+	int32 StartingRocketAmmo = 0;
+	UPROPERTY(EditAnywhere)
+	int32 StartingShotgunAmmo = 0;
+	UPROPERTY(EditAnywhere)
+	int32 StartingSniperAmmo = 1;
 	
 	void InitializeCarriedAmmo();
 	void UpdateAmmoValues();
