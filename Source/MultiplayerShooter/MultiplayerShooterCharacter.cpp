@@ -20,6 +20,7 @@
 #include "TimerManager.h"
 #include "Combat/CombatComponent.h"
 #include "Components/DivingComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Weapon/WeaponTypes.h"
 #include "MultiplayerShooter/PlayerState/ShooterPlayerState.h"
 
@@ -106,7 +107,7 @@ void AMultiplayerShooterCharacter::PostInitializeComponents()
 void AMultiplayerShooterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
 	Health = MaxHealth;
 
 	ShooterPlayerController = Cast<AShooterPlayerController>(Controller);
@@ -126,6 +127,10 @@ void AMultiplayerShooterCharacter::BeginPlay()
 	{
 		OnTakeAnyDamage.AddDynamic(this, &ThisClass::ReceiveDamage);
 	}
+
+	SpawnDefaultWeapon();
+	//UpdateUIAmmo();
+	
 }
 
 void AMultiplayerShooterCharacter::Tick(float DeltaSeconds)
@@ -328,6 +333,16 @@ void AMultiplayerShooterCharacter::PollInit()
 	}
 }
 
+void AMultiplayerShooterCharacter::UpdateUIAmmo()
+{
+	ShooterPlayerController = ShooterPlayerController == nullptr ? Cast<AShooterPlayerController>(Controller) : ShooterPlayerController;
+	if(ShooterPlayerController && Combat && Combat->EquippedWeapon)
+	{
+		ShooterPlayerController->SetUIWeaponAmmo(Combat->EquippedWeapon->GetAmmo());
+		ShooterPlayerController->SetUICarriedAmmo(Combat->CarriedAmmo);
+	}
+}
+
 void AMultiplayerShooterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
                                                  AController* InstigatorController, AActor* DamageCauser)
 {
@@ -360,6 +375,22 @@ ECombatState AMultiplayerShooterCharacter::GetCombatState() const
 bool AMultiplayerShooterCharacter::UseFABRIK()
 {
 	return GetCombatState() != ECombatState::ECS_Reloading;
+}
+
+void AMultiplayerShooterCharacter::SpawnDefaultWeapon()
+{
+	AShooterGameMode* ShooterGameMode = Cast<AShooterGameMode>(UGameplayStatics::GetGameMode(this));
+	UWorld* World = GetWorld();
+	UE_LOG(LogTemp, Warning, TEXT("BOB123"));
+	if(/*ShooterGameMode &&*/ World && !IsDead && DefaultWeaponClass)
+	{
+		AWeapon* StartingWeapon = World->SpawnActor<AWeapon>(DefaultWeaponClass);
+		if(Combat)
+		{
+			Combat->EquipWeapon(StartingWeapon);
+			UE_LOG(LogTemp, Warning, TEXT("BOB"));
+		}
+	}
 }
 
 void AMultiplayerShooterCharacter::SetOverlappingWeapon(AWeapon* Weapon)

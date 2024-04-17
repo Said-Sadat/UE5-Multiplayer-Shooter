@@ -41,7 +41,8 @@ void UCharacterHUD::SetTimerText(float RemainingTime)
 void UCharacterHUD::SetAmmoAmount(int32 Ammo)
 {
 	FString AmmoText = FString::Printf(TEXT("Ammo: %d"), Ammo);
-	WeaponAmmoAmount->SetText(FText::FromString(AmmoText));
+	if(WeaponAmmoAmount != nullptr)
+		WeaponAmmoAmount->SetText(FText::FromString(AmmoText));
 }
 
 void UCharacterHUD::SetCarriedAmount(int32 CarriedAmmo)

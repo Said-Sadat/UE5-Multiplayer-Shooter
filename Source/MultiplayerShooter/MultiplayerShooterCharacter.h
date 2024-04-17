@@ -88,6 +88,9 @@ class AMultiplayerShooterCharacter : public ACharacter
 	UPROPERTY(Replicated)
 	bool bIsAiming;
 
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AWeapon> DefaultWeaponClass;
+
 	UPROPERTY(EditAnywhere, Category= Combat, meta=(AllowPrivateAccess = "true"))
 	class UAnimMontage* FireWeaponMontage;
 	UPROPERTY(EditAnywhere, Category= Combat, meta=(AllowPrivateAccess = "true"))
@@ -128,6 +131,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool UseFABRIK();
 
+	void SpawnDefaultWeapon();
 	void SetOverlappingWeapon(AWeapon* Weapon);
 	void PlayFireMontage(bool isAiming);
 	void PlayReloadMontage();
@@ -161,6 +165,7 @@ protected:
 	void AimOffset(float DeltaTime);
 	void Reload();
 	void PollInit();
+	void UpdateUIAmmo();
 
 	UFUNCTION()
 	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);
