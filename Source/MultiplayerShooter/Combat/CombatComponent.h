@@ -31,6 +31,7 @@ public:
 	
 	void EquipWeapon(AWeapon* WeaponToEquip);
 	void Reload();
+	void PickupAmmo(EWeaponType WeaponType, int32 AmmoAmount);
 	
 	UFUNCTION(BlueprintCallable)
 	void FinishReloading();
@@ -61,6 +62,7 @@ protected:
 	void HandleReload();
 	int32 AmountToReload();
 	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
+	
 
 private:
 	AMultiplayerShooterCharacter* Character;
