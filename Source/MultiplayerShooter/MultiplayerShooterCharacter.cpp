@@ -256,14 +256,7 @@ void AMultiplayerShooterCharacter::Equip(const FInputActionValue& Value)
 {
 	if(Combat)
 	{
-		if(HasAuthority())
-		{
-			Combat->EquipWeapon(OverlappingWeapon);
-		}
-		else
-		{
-			ServerEquipButtonPressed();
-		}
+		ServerEquipButtonPressed();
 	}
 }
 
@@ -381,14 +374,12 @@ void AMultiplayerShooterCharacter::SpawnDefaultWeapon()
 {
 	AShooterGameMode* ShooterGameMode = Cast<AShooterGameMode>(UGameplayStatics::GetGameMode(this));
 	UWorld* World = GetWorld();
-	UE_LOG(LogTemp, Warning, TEXT("BOB123"));
 	if(/*ShooterGameMode &&*/ World && !IsDead && DefaultWeaponClass)
 	{
 		AWeapon* StartingWeapon = World->SpawnActor<AWeapon>(DefaultWeaponClass);
 		if(Combat)
 		{
 			Combat->EquipWeapon(StartingWeapon);
-			UE_LOG(LogTemp, Warning, TEXT("BOB"));
 		}
 	}
 }
