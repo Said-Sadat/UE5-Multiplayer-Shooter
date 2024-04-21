@@ -107,7 +107,6 @@ void AMultiplayerShooterCharacter::PostInitializeComponents()
 void AMultiplayerShooterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
 	Health = MaxHealth;
 
 	ShooterPlayerController = Cast<AShooterPlayerController>(Controller);
@@ -126,9 +125,10 @@ void AMultiplayerShooterCharacter::BeginPlay()
 	if(HasAuthority())
 	{
 		OnTakeAnyDamage.AddDynamic(this, &ThisClass::ReceiveDamage);
+		SpawnDefaultWeapon();
 	}
 
-	SpawnDefaultWeapon();
+	
 	//UpdateUIAmmo();
 	
 }
