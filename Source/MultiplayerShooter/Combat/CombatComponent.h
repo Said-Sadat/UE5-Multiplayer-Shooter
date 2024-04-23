@@ -29,12 +29,16 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE AWeapon* GetEquippedWeapon() const { return EquippedWeapon; }
 	
-	void EquipWeapon(AWeapon* WeaponToEquip);
-	void Reload();
-	void PickupAmmo(EWeaponType WeaponType, int32 AmmoAmount);
-	
 	UFUNCTION(BlueprintCallable)
 	void FinishReloading();
+
+	void EquipWeapon(AWeapon* WeaponToEquip);
+	void SwapWeapon();
+	void Reload();
+	void PickupAmmo(EWeaponType WeaponType, int32 AmmoAmount);
+
+	bool ShouldSwapWeapon();
+	
 	
 protected:
 	// Called when the game starts
