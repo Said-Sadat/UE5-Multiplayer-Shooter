@@ -36,6 +36,7 @@ public:
 	UDivingComponent();
 	
 	void Dive(FVector2D MovementVector);
+	void SetDiveUI();
 
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;

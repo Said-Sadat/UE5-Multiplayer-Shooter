@@ -29,8 +29,7 @@ void UDivingComponent::BeginPlay()
 	{
 		OwnerController = Cast<AShooterPlayerController>(ownerCharacter->GetController());
 		
-		if(OwnerController)
-			OwnerController->SetUIDiveCount(diveCount);
+		SetDiveUI();
 	}
 }
 
@@ -67,12 +66,17 @@ void UDivingComponent::Dive(FVector2D MovementVector)
 
 	diveCount -= 1;
 
-	if(OwnerController)
-		OwnerController->SetUIDiveCount(diveCount);
+	SetDiveUI();
 	
 	bIsDiving = true;
 
 	ServerRPCDive(MovementVector);
+}
+
+void UDivingComponent::SetDiveUI()
+{
+	if(OwnerController)
+		OwnerController->SetUIDiveCount(diveCount);
 }
 
 void UDivingComponent::ShouldStartMoving(bool shouldMove)

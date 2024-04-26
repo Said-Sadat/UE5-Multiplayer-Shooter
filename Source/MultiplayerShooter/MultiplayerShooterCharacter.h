@@ -136,6 +136,7 @@ public:
 	void PlayFireMontage(bool isAiming);
 	void PlayReloadMontage();
 	void PlayDeathMontage();
+	void UpdateUIAmmo();
 
 	void Dead();
 	UFUNCTION(NetMulticast, Reliable)
@@ -165,7 +166,7 @@ protected:
 	void AimOffset(float DeltaTime);
 	void Reload();
 	void PollInit();
-	void UpdateUIAmmo();
+	
 
 	UFUNCTION()
 	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);

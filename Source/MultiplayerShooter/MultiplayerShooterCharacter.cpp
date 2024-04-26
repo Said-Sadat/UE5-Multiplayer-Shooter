@@ -118,19 +118,16 @@ void AMultiplayerShooterCharacter::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 			IsInputSetup = true;
 		}
-
-		UpdateHUDHealth();
 	}
-	
+
 	if(HasAuthority())
 	{
-		OnTakeAnyDamage.AddDynamic(this, &ThisClass::ReceiveDamage);
 		SpawnDefaultWeapon();
+		OnTakeAnyDamage.AddDynamic(this, &ThisClass::ReceiveDamage);
 	}
 
-	
-	//UpdateUIAmmo();
-	
+	UpdateUIAmmo();
+	UpdateHUDHealth();
 }
 
 void AMultiplayerShooterCharacter::Tick(float DeltaSeconds)
@@ -153,6 +150,28 @@ void AMultiplayerShooterCharacter::Tick(float DeltaSeconds)
 	AimOffset(DeltaSeconds);
 	HideCloseCharacter();
 	PollInit();
+
+}
+
+void AMultiplayerShooterCharacter::PollInit()
+{
+	if(ShooterPlayerState == nullptr)
+	{
+		ShooterPlayerState = GetPlayerState<AShooterPlayerState>();
+		if(ShooterPlayerState)
+		{
+			ShooterPlayerState->AddToScore(0);
+			ShooterPlayerState->AddToDeaths(0);
+		}
+	}
+	
+	
+	ShooterPlayerController = ShooterPlayerController == nullptr ? Cast<AShooterPlayerController>(Controller) : ShooterPlayerController;
+	if(ShooterPlayerController)
+	{
+		UpdateUIAmmo();
+		UpdateHUDHealth();
+	}
 }
 
 // Input
@@ -313,19 +332,6 @@ void AMultiplayerShooterCharacter::Reload()
 		Combat->Reload();
 }
 
-void AMultiplayerShooterCharacter::PollInit()
-{
-	if(ShooterPlayerState == nullptr)
-	{
-		ShooterPlayerState = GetPlayerState<AShooterPlayerState>();
-		if(ShooterPlayerState)
-		{
-			ShooterPlayerState->AddToScore(0);
-			ShooterPlayerState->AddToDeaths(0);
-		}
-	}
-}
-
 void AMultiplayerShooterCharacter::UpdateUIAmmo()
 {
 	ShooterPlayerController = ShooterPlayerController == nullptr ? Cast<AShooterPlayerController>(Controller) : ShooterPlayerController;
@@ -333,6 +339,7 @@ void AMultiplayerShooterCharacter::UpdateUIAmmo()
 	{
 		ShooterPlayerController->SetUIWeaponAmmo(Combat->EquippedWeapon->GetAmmo());
 		ShooterPlayerController->SetUICarriedAmmo(Combat->CarriedAmmo);
+		UE_LOG(LogTemp,Warning, TEXT("BOB %s"), *GetName());
 	}
 }
 
