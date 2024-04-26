@@ -339,7 +339,6 @@ void AMultiplayerShooterCharacter::UpdateUIAmmo()
 	{
 		ShooterPlayerController->SetUIWeaponAmmo(Combat->EquippedWeapon->GetAmmo());
 		ShooterPlayerController->SetUICarriedAmmo(Combat->CarriedAmmo);
-		UE_LOG(LogTemp,Warning, TEXT("BOB %s"), *GetName());
 	}
 }
 
