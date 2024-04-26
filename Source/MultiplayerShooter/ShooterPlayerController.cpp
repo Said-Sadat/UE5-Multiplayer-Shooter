@@ -96,13 +96,13 @@ void AShooterPlayerController::OnRep_MatchState()
 	}
 }
 
-void AShooterPlayerController::OnMatchStateSet(FName State)
+void AShooterPlayerController::OnMatchStateSet(FName State, bool bTeamsMatch)
 {
 	MatchState = State;
 
 	if(MatchState == MatchState::InProgress)
 	{
-		HandleHasMatchStarted();
+		HandleHasMatchStarted(bTeamsMatch);
 	}
 	else if(MatchState == MatchState::Cooldown)
 	{
@@ -155,6 +155,79 @@ void AShooterPlayerController::HandleCooldown()
 				}
 				ShooterHUD->GetAnnouncement()->InfoText->SetText(FText::FromString(InfoTextString));
 			}
+		}
+	}
+}
+
+void AShooterPlayerController::HideTeamScores()
+{
+	ShooterHUD = ShooterHUD == nullptr ? Cast<AShooterHUD>(GetHUD()) : ShooterHUD;
+	if(ShooterHUD)
+	{
+		ShooterHUD->GetCharacterHUD()->RemoveFromParent();
+		bool IsHudValid = ShooterHUD->GetCharacterHUD() &&
+			ShooterHUD->GetCharacterHUD()->RedTeamScore &&
+			ShooterHUD->GetCharacterHUD()->BlueTeamScore;
+		
+		if(IsHudValid)
+		{
+			ShooterHUD->GetCharacterHUD()->RedTeamScore->SetText(FText());
+			ShooterHUD->GetCharacterHUD()->BlueTeamScore->SetText(FText());
+		}
+	}
+}
+
+void AShooterPlayerController::InitTeamScores()
+{
+	ShooterHUD = ShooterHUD == nullptr ? Cast<AShooterHUD>(GetHUD()) : ShooterHUD;
+	if(ShooterHUD)
+	{
+		ShooterHUD->GetCharacterHUD()->RemoveFromParent();
+		bool IsHudValid = ShooterHUD->GetCharacterHUD() &&
+			ShooterHUD->GetCharacterHUD()->RedTeamScore &&
+			ShooterHUD->GetCharacterHUD()->BlueTeamScore;
+		
+		if(IsHudValid)
+		{
+			FString RedScoreText("Red Team: 0");
+			FString BlueScoreText("Blue Team: 0");
+			
+			ShooterHUD->GetCharacterHUD()->RedTeamScore->SetText(FText::FromString(RedScoreText));
+			ShooterHUD->GetCharacterHUD()->BlueTeamScore->SetText(FText::FromString(BlueScoreText));
+		}
+	}
+}
+
+void AShooterPlayerController::SetUIRedTeamScore(int32 RedScore)
+{
+	ShooterHUD = ShooterHUD == nullptr ? Cast<AShooterHUD>(GetHUD()) : ShooterHUD;
+	if(ShooterHUD)
+	{
+		ShooterHUD->GetCharacterHUD()->RemoveFromParent();
+		bool IsHudValid = ShooterHUD->GetCharacterHUD() &&
+			ShooterHUD->GetCharacterHUD()->RedTeamScore;
+		
+		if(IsHudValid)
+		{
+			FString RedScoreText = FString::Printf(TEXT("Red Team: %d"), RedScore);
+			ShooterHUD->GetCharacterHUD()->RedTeamScore->SetText(FText::FromString(RedScoreText));
+		}
+	}
+}
+
+void AShooterPlayerController::SetUIBlueTeamScore(int32 BlueScore)
+{
+	ShooterHUD = ShooterHUD == nullptr ? Cast<AShooterHUD>(GetHUD()) : ShooterHUD;
+	if(ShooterHUD)
+	{
+		ShooterHUD->GetCharacterHUD()->RemoveFromParent();
+		bool IsHudValid = ShooterHUD->GetCharacterHUD() &&
+			ShooterHUD->GetCharacterHUD()->BlueTeamScore;
+		
+		if(IsHudValid)
+		{
+			FString BlueScoreText = FString::Printf(TEXT("Blue Team: %d"), BlueScore);
+			ShooterHUD->GetCharacterHUD()->RedTeamScore->SetText(FText::FromString(BlueScoreText));
 		}
 	}
 }
@@ -217,7 +290,7 @@ void AShooterPlayerController::PollInit()
 	
 }
 
-void AShooterPlayerController::HandleHasMatchStarted()
+void AShooterPlayerController::HandleHasMatchStarted(bool bTeamsMatch)
 {
 	ShooterHUD = ShooterHUD == nullptr ? Cast<AShooterHUD>(GetHUD()) : ShooterHUD;
 	if(ShooterHUD)
@@ -227,6 +300,11 @@ void AShooterPlayerController::HandleHasMatchStarted()
 
 		if(ShooterHUD->GetAnnouncement())
 			ShooterHUD->GetAnnouncement()->SetVisibility(ESlateVisibility::Hidden);
+
+		/*if(bTeamsMatch)
+			InitTeamScores();
+		else
+			HideTeamScores();*/
 	}
 }
 
@@ -363,8 +441,7 @@ void AShooterPlayerController::SetUIWeaponAmmo(int32 Ammo)
 	if(isHudValid)
 	{
 		FString AmmoText = FString::Printf(TEXT("Ammo: %d"), Ammo);
-		if(ShooterHUD->GetCharacterHUD()->WeaponAmmoAmount != nullptr)
-			ShooterHUD->GetCharacterHUD()->WeaponAmmoAmount->SetText(FText::FromString(AmmoText));
+		ShooterHUD->GetCharacterHUD()->WeaponAmmoAmount->SetText(FText::FromString(AmmoText));
 	}
 	else
 	{

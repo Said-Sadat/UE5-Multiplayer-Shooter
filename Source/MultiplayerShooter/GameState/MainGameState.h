@@ -29,6 +29,9 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_BlueTeamScore)
 	float BlueTeamScore = 0.f;
 
+	void RedTeamScores();
+	void BlueTeamScores();
+
 	UFUNCTION()
 	void OnRep_RedTeamScore();
 	UFUNCTION()

@@ -6,6 +6,11 @@
 #include "MultiplayerShooter/PlayerState/ShooterPlayerState.h"
 #include "Kismet/GameplayStatics.h"
 
+ATeamsGameMode::ATeamsGameMode()
+{
+	bTeamsMatch = true;
+}
+
 void ATeamsGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
@@ -48,6 +53,20 @@ void ATeamsGameMode::Logout(AController* Exiting)
 			ShooterGameState->BlueTeam.Remove(ShooterPlayerState);
 		}
 	}
+}
+
+float ATeamsGameMode::CalculateDamage(AController* Attacker, AController* Victim, float BaseDamage)
+{
+	AShooterPlayerState* AttackerPState = Attacker->GetPlayerState<AShooterPlayerState>();
+	AShooterPlayerState* VictimPState = Victim->GetPlayerState<AShooterPlayerState>();
+
+	if(AttackerPState == nullptr || Victim == nullptr) return BaseDamage;
+	if(VictimPState == AttackerPState) return BaseDamage;
+
+	if(AttackerPState->GetTeam() == VictimPState->GetTeam())
+		return 0;
+
+	return BaseDamage;
 }
 
 void ATeamsGameMode::HandleMatchHasStarted()

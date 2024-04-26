@@ -42,7 +42,7 @@ protected:
 	virtual void Tick(float DeltaSeconds) override;
 	void SetHUDTime();
 	void PollInit();
-	void HandleHasMatchStarted();
+	void HandleHasMatchStarted(bool bTeamsMatch = false);
 	
 	UFUNCTION(Server, Reliable)
 	void ServerRequestServerTime(float TimeOfClientRequest);
@@ -79,6 +79,11 @@ public:
 	void SetUICarriedAmmo(int32 CarriedAmmo);
 	void SetUITimer(float RemainingTime);
 	void SetUIAnnouncementTime(float RemainingTime);
-	void OnMatchStateSet(FName State);
+	void HideTeamScores();
+	void InitTeamScores();
+	void SetUIRedTeamScore(int32 RedScore);
+	void SetUIBlueTeamScore(int32 BlueScore);
+	
+	void OnMatchStateSet(FName State, bool bTeamsMatch = false);
 	void HandleCooldown();
 };

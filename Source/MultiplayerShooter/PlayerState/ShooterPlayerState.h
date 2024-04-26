@@ -18,11 +18,14 @@ class MULTIPLAYERSHOOTER_API AShooterPlayerState : public APlayerState
 	class AMultiplayerShooterCharacter* ShooterCharacter;
 	class AShooterPlayerController* ShooterController;
 
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = OnRep_Team)
 	ETeam Team = ETeam::ET_NoTeam;
 
 	UPROPERTY(ReplicatedUsing = OnRep_Deaths)
 	int Deaths;
+
+	UFUNCTION()
+	void OnRep_Team();
 	
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -33,5 +36,5 @@ public:
 	void AddToDeaths(int DeathAmount);
 
 	FORCEINLINE ETeam GetTeam() const { return Team; }
-	FORCEINLINE void SetTeam(ETeam TeamToSet) { Team = TeamToSet; }
+	void SetTeam(ETeam TeamToSet);
 };

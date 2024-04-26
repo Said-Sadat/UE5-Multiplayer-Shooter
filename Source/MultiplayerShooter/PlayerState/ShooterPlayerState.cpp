@@ -44,6 +44,26 @@ void AShooterPlayerState::AddToDeaths(int DeathAmount)
 	}
 }
 
+void AShooterPlayerState::SetTeam(ETeam TeamToSet)
+{
+	Team = TeamToSet;
+
+	ShooterCharacter = ShooterCharacter == nullptr ? Cast<AMultiplayerShooterCharacter>(GetPawn()) : ShooterCharacter;
+	if(ShooterCharacter)
+	{
+		ShooterCharacter->SetTeamColour(Team);
+	}
+}
+
+void AShooterPlayerState::OnRep_Team()
+{
+	ShooterCharacter = ShooterCharacter == nullptr ? Cast<AMultiplayerShooterCharacter>(GetPawn()) : ShooterCharacter;
+	if(ShooterCharacter)
+	{
+		ShooterCharacter->SetTeamColour(Team);
+	}
+}
+
 void AShooterPlayerState::OnRep_Score()
 {
 	Super::OnRep_Score();

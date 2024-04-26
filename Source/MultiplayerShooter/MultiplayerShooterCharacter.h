@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "InputActionValue.h"
+#include "Team.h"
 #include "GameFramework/Character.h"
 #include "Combat/CombatState.h"
 #include "Logging/LogMacros.h"
@@ -33,6 +34,7 @@ class AMultiplayerShooterCharacter : public ACharacter
 
 	class AShooterPlayerController* ShooterPlayerController;
 	class AShooterPlayerState* ShooterPlayerState;
+	class AShooterGameMode* ShooterGameMode;
 	void UpdateHUDHealth();
 
 	UPROPERTY(EditAnywhere, Category = "Player Stats")
@@ -99,7 +101,12 @@ class AMultiplayerShooterCharacter : public ACharacter
 	class UAnimMontage* HitReactMontage;
 	UPROPERTY(EditAnywhere, Category= Combat, meta=(AllowPrivateAccess = "true"))
 	class UAnimMontage* DeathMontage;
-	
+
+	UPROPERTY(EditAnywhere, Category = Teams)
+	USkeletalMesh* RedSkeletalMesh;
+
+	UPROPERTY(EditAnywhere, Category = Teams)
+	USkeletalMesh* BlueSkeletalMesh;
 
 public:
 	AMultiplayerShooterCharacter();
@@ -153,6 +160,8 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PostInitializeComponents() override;
+
+	void SetTeamColour(ETeam Team);
 
 protected:
 	void Move(const FInputActionValue& Value);

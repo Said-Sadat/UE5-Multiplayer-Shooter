@@ -32,12 +32,17 @@ class MULTIPLAYERSHOOTER_API AShooterGameMode : public AGameMode
 	float LevelStartingTime = 0.f;
 
 protected:
+	bool bTeamsMatch = false;
+	
 	virtual void BeginPlay() override;
 	virtual void OnMatchStateSet() override;
 	
 public:
 	AShooterGameMode();
 
+	virtual float CalculateDamage(AController* Attacker, AController* Victim, float BaseDamage);
+
+	FORCEINLINE bool IsTeamsMatch() const { return bTeamsMatch; }
 	FORCEINLINE float GetWarmUpTime() const { return WarmupTime; }
 	FORCEINLINE float GetMatchTime() const { return MatchTime; }
 	FORCEINLINE float GetLevelStartingTime() const { return LevelStartingTime; }
