@@ -61,8 +61,9 @@ void AShooterPlayerController::ServerCheckMatchState_Implementation()
 		LevelStartingTime = ShooterGameMode->GetLevelStartingTime();
 		MatchState = ShooterGameMode->GetMatchState();
 		CooldownTime = ShooterGameMode->GetCooldownTime();
+		bShowTeamScores = ShooterGameMode->IsTeamsMatch();
 
-		ClientJoinMidGame(MatchState, WarmupTime, MatchTime, CooldownTime, LevelStartingTime);
+		ClientJoinMidGame(MatchState, WarmupTime, MatchTime, CooldownTime, LevelStartingTime, bShowTeamScores);
 
 		if(ShooterHUD && MatchState == MatchState::WaitingToStart)
 		{
@@ -71,13 +72,14 @@ void AShooterPlayerController::ServerCheckMatchState_Implementation()
 	}
 }
 
-void AShooterPlayerController::ClientJoinMidGame_Implementation(FName StateOfMatch, float Warmup, float Match, float Cooldown, float StartingTime)
+void AShooterPlayerController::ClientJoinMidGame_Implementation(FName StateOfMatch, float Warmup, float Match, float Cooldown, float StartingTime, bool isTeamMatch)
 {
 	WarmupTime = Warmup;
 	MatchTime = Match;
 	LevelStartingTime = StartingTime;
 	MatchState = StateOfMatch;
 	CooldownTime = Cooldown;
+	bShowTeamScores = isTeamMatch;
 	OnMatchStateSet(MatchState);
 
 	if(ShooterHUD && MatchState == MatchState::WaitingToStart)
@@ -98,7 +100,7 @@ void AShooterPlayerController::OnRep_MatchState()
 {
 	if(MatchState == MatchState::InProgress)
 	{
-		HandleHasMatchStarted();
+		HandleHasMatchStarted(bShowTeamScores);
 	}
 	else if(MatchState == MatchState::Cooldown)
 	{
@@ -345,6 +347,15 @@ void AShooterPlayerController::PollInit()
 			}
 		}
 	}
+
+	if (bShowTeamScores)
+    {
+      InitTeamScores();
+    }
+    else
+    {
+      HideTeamScores();
+    }
 	
 }
 
