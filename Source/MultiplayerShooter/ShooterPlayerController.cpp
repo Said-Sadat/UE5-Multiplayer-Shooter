@@ -232,7 +232,7 @@ void AShooterPlayerController::SetUIBlueTeamScore(int32 BlueScore)
 		if(IsHudValid)
 		{
 			FString BlueScoreText = FString::Printf(TEXT("Blue Team: %d"), BlueScore);
-			ShooterHUD->GetCharacterHUD()->RedTeamScore->SetText(FText::FromString(BlueScoreText));
+			ShooterHUD->GetCharacterHUD()->BlueTeamScore->SetText(FText::FromString(BlueScoreText));
 		}
 	}
 }

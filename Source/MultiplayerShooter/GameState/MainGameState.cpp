@@ -3,6 +3,7 @@
 
 #include "MainGameState.h"
 
+#include "MultiplayerShooter/ShooterPlayerController.h"
 #include "MultiplayerShooter/PlayerState/ShooterPlayerState.h"
 #include "Net/UnrealNetwork.h"
 
@@ -37,17 +38,31 @@ void AMainGameState::UpdateTopScore(AShooterPlayerState* ScoringPlayer)
 void AMainGameState::RedTeamScores()
 {
 	++RedTeamScore;
+
+	AShooterPlayerController* ShooterPlayerController = Cast<AShooterPlayerController>(GetWorld()->GetFirstPlayerController());
+	if(ShooterPlayerController)
+		ShooterPlayerController->SetUIRedTeamScore(RedTeamScore);
 }
 
 void AMainGameState::BlueTeamScores()
 {
 	++BlueTeamScore;
+
+	AShooterPlayerController* ShooterPlayerController = Cast<AShooterPlayerController>(GetWorld()->GetFirstPlayerController());
+	if(ShooterPlayerController)
+		ShooterPlayerController->SetUIBlueTeamScore(BlueTeamScore);
 }
 
 void AMainGameState::OnRep_RedTeamScore()
 {
+	AShooterPlayerController* ShooterPlayerController = Cast<AShooterPlayerController>(GetWorld()->GetFirstPlayerController());
+	if(ShooterPlayerController)
+		ShooterPlayerController->SetUIRedTeamScore(RedTeamScore);
 }
 
 void AMainGameState::OnRep_BlueTeamScore()
 {
+	AShooterPlayerController* ShooterPlayerController = Cast<AShooterPlayerController>(GetWorld()->GetFirstPlayerController());
+	if(ShooterPlayerController)
+		ShooterPlayerController->SetUIBlueTeamScore(BlueTeamScore);
 }

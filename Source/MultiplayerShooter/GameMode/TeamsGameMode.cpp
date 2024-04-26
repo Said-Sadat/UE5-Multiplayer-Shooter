@@ -5,10 +5,32 @@
 #include "MultiplayerShooter/GameState/MainGameState.h"
 #include "MultiplayerShooter/PlayerState/ShooterPlayerState.h"
 #include "Kismet/GameplayStatics.h"
+#include "MultiplayerShooter/ShooterPlayerController.h"
 
 ATeamsGameMode::ATeamsGameMode()
 {
 	bTeamsMatch = true;
+}
+
+void ATeamsGameMode::PlayerKilled(AMultiplayerShooterCharacter* DeadCharacter,
+	AShooterPlayerController* VictimController, AShooterPlayerController* AttackerController)
+{
+	Super::PlayerKilled(DeadCharacter, VictimController, AttackerController);
+
+	AMainGameState* ShooterGameState = Cast<AMainGameState>(UGameplayStatics::GetGameState(this));
+	AShooterPlayerState* AttackerPlayerState = AttackerController ? Cast<AShooterPlayerState>(AttackerController->PlayerState) : nullptr;
+
+	if(ShooterGameState && AttackerPlayerState)
+	{
+		if(AttackerPlayerState->GetTeam() == ETeam::ET_BlueTeam)
+		{
+			ShooterGameState->BlueTeamScores();
+		}
+		if(AttackerPlayerState->GetTeam() == ETeam::ET_ReadTeam)
+		{
+			ShooterGameState->RedTeamScores();
+		}
+	}
 }
 
 void ATeamsGameMode::PostLogin(APlayerController* NewPlayer)
