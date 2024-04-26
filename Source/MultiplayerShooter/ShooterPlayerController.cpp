@@ -347,15 +347,6 @@ void AShooterPlayerController::PollInit()
 			}
 		}
 	}
-
-	if (bShowTeamScores)
-    {
-      InitTeamScores();
-    }
-    else
-    {
-      HideTeamScores();
-    }
 	
 }
 
@@ -371,8 +362,6 @@ void AShooterPlayerController::HandleHasMatchStarted(bool bTeamsMatch)
 
 		if(ShooterHUD->GetAnnouncement())
 			ShooterHUD->GetAnnouncement()->SetVisibility(ESlateVisibility::Hidden);
-
-		//if(!HasAuthority()) return;
 		
 		if(bTeamsMatch)
 			InitTeamScores();

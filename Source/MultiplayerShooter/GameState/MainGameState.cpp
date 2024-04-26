@@ -37,7 +37,7 @@ void AMainGameState::UpdateTopScore(AShooterPlayerState* ScoringPlayer)
 
 void AMainGameState::RedTeamScores()
 {
-	++RedTeamScore;
+	RedTeamScore += 1;
 
 	AShooterPlayerController* ShooterPlayerController = Cast<AShooterPlayerController>(GetWorld()->GetFirstPlayerController());
 	if(ShooterPlayerController)
@@ -46,7 +46,7 @@ void AMainGameState::RedTeamScores()
 
 void AMainGameState::BlueTeamScores()
 {
-	++BlueTeamScore;
+	BlueTeamScore += 1;
 
 	AShooterPlayerController* ShooterPlayerController = Cast<AShooterPlayerController>(GetWorld()->GetFirstPlayerController());
 	if(ShooterPlayerController)
