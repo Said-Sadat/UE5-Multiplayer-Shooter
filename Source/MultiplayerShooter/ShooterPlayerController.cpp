@@ -61,8 +61,9 @@ void AShooterPlayerController::ServerCheckMatchState_Implementation()
 		LevelStartingTime = ShooterGameMode->GetLevelStartingTime();
 		MatchState = ShooterGameMode->GetMatchState();
 		CooldownTime = ShooterGameMode->GetCooldownTime();
+		bShowTeamScores = ShooterGameMode->IsTeamsMatch();
 
-		ClientJoinMidGame(MatchState, WarmupTime, MatchTime, CooldownTime, LevelStartingTime);
+		ClientJoinMidGame(MatchState, WarmupTime, MatchTime, CooldownTime, LevelStartingTime, bShowTeamScores);
 
 		if(ShooterHUD && MatchState == MatchState::WaitingToStart)
 		{
@@ -71,13 +72,14 @@ void AShooterPlayerController::ServerCheckMatchState_Implementation()
 	}
 }
 
-void AShooterPlayerController::ClientJoinMidGame_Implementation(FName StateOfMatch, float Warmup, float Match, float Cooldown, float StartingTime)
+void AShooterPlayerController::ClientJoinMidGame_Implementation(FName StateOfMatch, float Warmup, float Match, float Cooldown, float StartingTime, bool isTeamMatch)
 {
 	WarmupTime = Warmup;
 	MatchTime = Match;
 	LevelStartingTime = StartingTime;
 	MatchState = StateOfMatch;
 	CooldownTime = Cooldown;
+	bShowTeamScores = isTeamMatch;
 	OnMatchStateSet(MatchState);
 
 	if(ShooterHUD && MatchState == MatchState::WaitingToStart)
@@ -98,7 +100,7 @@ void AShooterPlayerController::OnRep_MatchState()
 {
 	if(MatchState == MatchState::InProgress)
 	{
-		HandleHasMatchStarted();
+		HandleHasMatchStarted(bShowTeamScores);
 	}
 	else if(MatchState == MatchState::Cooldown)
 	{
@@ -345,13 +347,21 @@ void AShooterPlayerController::PollInit()
 			}
 		}
 	}
+
+	if (bShowTeamScores)
+    {
+      InitTeamScores();
+    }
+    else
+    {
+      HideTeamScores();
+    }
 	
 }
 
 void AShooterPlayerController::HandleHasMatchStarted(bool bTeamsMatch)
 {
-	if(HasAuthority())
-		bShowTeamScores = bTeamsMatch;
+	bShowTeamScores = bTeamsMatch;
 	
 	ShooterHUD = ShooterHUD == nullptr ? Cast<AShooterHUD>(GetHUD()) : ShooterHUD;
 	if(ShooterHUD)
@@ -362,7 +372,7 @@ void AShooterPlayerController::HandleHasMatchStarted(bool bTeamsMatch)
 		if(ShooterHUD->GetAnnouncement())
 			ShooterHUD->GetAnnouncement()->SetVisibility(ESlateVisibility::Hidden);
 
-		if(!HasAuthority()) return;
+		//if(!HasAuthority()) return;
 		
 		if(bTeamsMatch)
 			InitTeamScores();

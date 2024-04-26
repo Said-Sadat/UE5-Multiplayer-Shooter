@@ -5,10 +5,18 @@
 
 #include "GameFramework/GameStateBase.h"
 #include "GameFramework/PlayerState.h"
+#include "MultiplayerSessionsSubsystem.h"
 
 void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
+
+	UGameInstance* GameInstance = GetGameInstance();
+	if(GameInstance)
+	{
+		Subsystem = GameInstance->GetSubsystem<UMultiplayerSessionsSubsystem>();
+		check(Subsystem);
+	}
 
 	if(GameState)
 	{
@@ -50,7 +58,14 @@ void ALobbyGameMode::PostLogin(APlayerController* NewPlayer)
 			if(World)
 			{
 				bUseSeamlessTravel = true;
-				World->ServerTravel(FString("/Game/Blueprints/Maps/Map3?listen"));
+				
+				if(Subsystem)
+					MatchType = Subsystem->GetDesiredMatchType();
+				
+				if(MatchType == "Teams")
+					World->ServerTravel(FString("/Game/Blueprints/Maps/Map4?listen"));
+				else
+					World->ServerTravel(FString("/Game/Blueprints/Maps/Map3?listen"));
 			}
 		}
 	}

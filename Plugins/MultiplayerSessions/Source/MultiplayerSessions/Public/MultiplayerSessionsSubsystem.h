@@ -39,6 +39,8 @@ public:
 	void DestroySession();
 	void StartSession();
 
+	FORCEINLINE FString GetDesiredMatchType() const { return DesiredMatchType; }
+	
 	//
 	// Our own delegates
 	//
@@ -86,5 +88,6 @@ private:
 	bool bCreateSessionOnDestroy{false};
 	int32 LastNumPublicConnections;
 	FString LastMatchType;
-	
+
+	FString DesiredMatchType{};
 };
