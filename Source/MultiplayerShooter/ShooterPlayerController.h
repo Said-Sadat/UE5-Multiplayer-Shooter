@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "GameMode/ShooterGameMode.h"
 #include "ShooterPlayerController.generated.h"
 
+class AShooterPlayerState;
 /**
  * 
  */
@@ -42,7 +44,7 @@ protected:
 	virtual void Tick(float DeltaSeconds) override;
 	void SetHUDTime();
 	void PollInit();
-	void HandleHasMatchStarted();
+	void HandleHasMatchStarted(bool bTeamsMatch = false);
 	
 	UFUNCTION(Server, Reliable)
 	void ServerRequestServerTime(float TimeOfClientRequest);
@@ -56,6 +58,15 @@ protected:
 	float TimeSyncFrequency = 5.f;
 
 	float TimeSyncRunningTime = 0.f;
+
+	UPROPERTY(ReplicatedUsing = OnRep_ShowTeamScores)
+	bool bShowTeamScores = false;
+
+	UFUNCTION()
+	void OnRep_ShowTeamScores();
+
+	FString GetInfoText(const TArray<AShooterPlayerState*>& Players);
+	FString GetTeamsInfoText(class AMainGameState* ShooterGameState);
 
 	void CheckTimeSync(float deltaTime);
 
@@ -79,6 +90,13 @@ public:
 	void SetUICarriedAmmo(int32 CarriedAmmo);
 	void SetUITimer(float RemainingTime);
 	void SetUIAnnouncementTime(float RemainingTime);
-	void OnMatchStateSet(FName State);
+	void HideTeamScores();
+	void InitTeamScores();
+	void SetUIRedTeamScore(int32 RedScore);
+	void SetUIBlueTeamScore(int32 BlueScore);
+	
+	void OnMatchStateSet(FName State, bool bTeamsMatch = false);
 	void HandleCooldown();
+
+	FORCEINLINE FName GetMatchState() const { return MatchState; }
 };

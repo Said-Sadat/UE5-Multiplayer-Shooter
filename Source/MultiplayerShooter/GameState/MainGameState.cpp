@@ -3,6 +3,7 @@
 
 #include "MainGameState.h"
 
+#include "MultiplayerShooter/ShooterPlayerController.h"
 #include "MultiplayerShooter/PlayerState/ShooterPlayerState.h"
 #include "Net/UnrealNetwork.h"
 
@@ -11,6 +12,8 @@ void AMainGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AMainGameState, TopScoringPlayers);
+	DOREPLIFETIME(AMainGameState, RedTeamScore);
+	DOREPLIFETIME(AMainGameState, BlueTeamScore);
 }
 
 void AMainGameState::UpdateTopScore(AShooterPlayerState* ScoringPlayer)
@@ -30,4 +33,36 @@ void AMainGameState::UpdateTopScore(AShooterPlayerState* ScoringPlayer)
 		TopScoringPlayers.AddUnique(ScoringPlayer);
 		TopScore = ScoringPlayer->GetScore();
 	}
+}
+
+void AMainGameState::RedTeamScores()
+{
+	++RedTeamScore;
+
+	AShooterPlayerController* ShooterPlayerController = Cast<AShooterPlayerController>(GetWorld()->GetFirstPlayerController());
+	if(ShooterPlayerController)
+		ShooterPlayerController->SetUIRedTeamScore(RedTeamScore);
+}
+
+void AMainGameState::BlueTeamScores()
+{
+	++BlueTeamScore;
+
+	AShooterPlayerController* ShooterPlayerController = Cast<AShooterPlayerController>(GetWorld()->GetFirstPlayerController());
+	if(ShooterPlayerController)
+		ShooterPlayerController->SetUIBlueTeamScore(BlueTeamScore);
+}
+
+void AMainGameState::OnRep_RedTeamScore()
+{
+	AShooterPlayerController* ShooterPlayerController = Cast<AShooterPlayerController>(GetWorld()->GetFirstPlayerController());
+	if(ShooterPlayerController)
+		ShooterPlayerController->SetUIRedTeamScore(RedTeamScore);
+}
+
+void AMainGameState::OnRep_BlueTeamScore()
+{
+	AShooterPlayerController* ShooterPlayerController = Cast<AShooterPlayerController>(GetWorld()->GetFirstPlayerController());
+	if(ShooterPlayerController)
+		ShooterPlayerController->SetUIBlueTeamScore(BlueTeamScore);
 }

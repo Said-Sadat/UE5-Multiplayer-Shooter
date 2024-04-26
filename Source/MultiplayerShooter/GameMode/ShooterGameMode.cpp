@@ -36,7 +36,7 @@ void AShooterGameMode::OnMatchStateSet()
 		AShooterPlayerController* ShooterPlayer = Cast<AShooterPlayerController>(*It);
 		if(ShooterPlayer)
 		{
-			ShooterPlayer->OnMatchStateSet(MatchState);
+			ShooterPlayer->OnMatchStateSet(MatchState, bTeamsMatch);
 		}
 	}
 }
@@ -70,6 +70,11 @@ void AShooterGameMode::Tick(float DeltaSeconds)
 			RestartGame();
 		}
 	}
+}
+
+float AShooterGameMode::CalculateDamage(AController* Attacker, AController* Victim, float BaseDamage)
+{
+	return BaseDamage;
 }
 
 void AShooterGameMode::PlayerKilled(AMultiplayerShooterCharacter* DeadCharacter, AShooterPlayerController* VictimController,

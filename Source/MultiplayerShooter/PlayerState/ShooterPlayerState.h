@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
+#include "MultiplayerShooter/Team.h"
 #include "ShooterPlayerState.generated.h"
 
 /**
@@ -17,8 +18,14 @@ class MULTIPLAYERSHOOTER_API AShooterPlayerState : public APlayerState
 	class AMultiplayerShooterCharacter* ShooterCharacter;
 	class AShooterPlayerController* ShooterController;
 
+	UPROPERTY(ReplicatedUsing = OnRep_Team)
+	ETeam Team = ETeam::ET_NoTeam;
+
 	UPROPERTY(ReplicatedUsing = OnRep_Deaths)
 	int Deaths;
+
+	UFUNCTION()
+	void OnRep_Team();
 	
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
@@ -27,4 +34,7 @@ public:
 	virtual void OnRep_Deaths();
 	void AddToScore(float ScoreAmount);
 	void AddToDeaths(int DeathAmount);
+
+	FORCEINLINE ETeam GetTeam() const { return Team; }
+	void SetTeam(ETeam TeamToSet);
 };

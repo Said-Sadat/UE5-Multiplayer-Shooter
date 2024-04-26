@@ -19,6 +19,23 @@ class MULTIPLAYERSHOOTER_API AMainGameState : public AGameState
 public:
 	UPROPERTY(Replicated)
 	TArray<class AShooterPlayerState*> TopScoringPlayers;
+
+	TArray<AShooterPlayerState*> RedTeam;
+	TArray<AShooterPlayerState*> BlueTeam;
+
+	UPROPERTY(ReplicatedUsing = OnRep_RedTeamScore)
+	float RedTeamScore = 0.f;
+
+	UPROPERTY(ReplicatedUsing = OnRep_BlueTeamScore)
+	float BlueTeamScore = 0.f;
+
+	void RedTeamScores();
+	void BlueTeamScores();
+
+	UFUNCTION()
+	void OnRep_RedTeamScore();
+	UFUNCTION()
+	void OnRep_BlueTeamScore();
 	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	

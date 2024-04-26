@@ -104,6 +104,26 @@ void AMultiplayerShooterCharacter::PostInitializeComponents()
 	}
 }
 
+void AMultiplayerShooterCharacter::SetTeamColour(ETeam Team)
+{
+	if(GetMesh() == nullptr) return;
+	switch (Team)
+	{
+	case ETeam::ET_ReadTeam:
+		if(RedSkeletalMesh)
+			GetMesh()->SetSkeletalMesh(RedSkeletalMesh);
+		break;
+	case ETeam::ET_BlueTeam:
+		if(BlueSkeletalMesh)
+			GetMesh()->SetSkeletalMesh(BlueSkeletalMesh);
+		break;
+	case ETeam::ET_NoTeam:
+		if(BlueSkeletalMesh)
+			GetMesh()->SetSkeletalMesh(BlueSkeletalMesh);
+		break;
+	}
+}
+
 void AMultiplayerShooterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -155,6 +175,10 @@ void AMultiplayerShooterCharacter::Tick(float DeltaSeconds)
 
 void AMultiplayerShooterCharacter::PollInit()
 {
+
+	if(ShooterPlayerController)
+		if(ShooterPlayerController->GetMatchState() != MatchState::InProgress) return;
+	
 	if(ShooterPlayerState == nullptr)
 	{
 		ShooterPlayerState = GetPlayerState<AShooterPlayerState>();
@@ -162,6 +186,7 @@ void AMultiplayerShooterCharacter::PollInit()
 		{
 			ShooterPlayerState->AddToScore(0);
 			ShooterPlayerState->AddToDeaths(0);
+			SetTeamColour(ShooterPlayerState->GetTeam());
 		}
 	}
 	
@@ -345,6 +370,8 @@ void AMultiplayerShooterCharacter::UpdateUIAmmo()
 void AMultiplayerShooterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
                                                  AController* InstigatorController, AActor* DamageCauser)
 {
+	ShooterGameMode = ShooterGameMode == nullptr ? GetWorld()->GetAuthGameMode<AShooterGameMode>() : ShooterGameMode;
+	Damage = ShooterGameMode->CalculateDamage(InstigatorController, Controller, Damage);
 	Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
 
 	UpdateHUDHealth();
@@ -352,7 +379,6 @@ void AMultiplayerShooterCharacter::ReceiveDamage(AActor* DamagedActor, float Dam
 
 	if(Health == 0.f)
 	{
-		AShooterGameMode* ShooterGameMode = GetWorld()->GetAuthGameMode<AShooterGameMode>();
 		if(ShooterGameMode)
 		{
 			AShooterPlayerController* ReceiverController = Cast<AShooterPlayerController>(Controller);
@@ -378,7 +404,7 @@ bool AMultiplayerShooterCharacter::UseFABRIK()
 
 void AMultiplayerShooterCharacter::SpawnDefaultWeapon()
 {
-	AShooterGameMode* ShooterGameMode = Cast<AShooterGameMode>(UGameplayStatics::GetGameMode(this));
+	ShooterGameMode = ShooterGameMode == nullptr ? GetWorld()->GetAuthGameMode<AShooterGameMode>() : ShooterGameMode;
 	UWorld* World = GetWorld();
 	if(/*ShooterGameMode &&*/ World && !IsDead && DefaultWeaponClass)
 	{
@@ -528,7 +554,7 @@ void AMultiplayerShooterCharacter::OnRep_Health()
 
 void AMultiplayerShooterCharacter::DeadTimerFinished()
 {
-	AShooterGameMode* ShooterGameMode = GetWorld()->GetAuthGameMode<AShooterGameMode>();
+	ShooterGameMode = ShooterGameMode == nullptr ? GetWorld()->GetAuthGameMode<AShooterGameMode>() : ShooterGameMode;
 	if(ShooterGameMode)
 	{
 		ShooterGameMode->RequestRespawn(this, Controller);
