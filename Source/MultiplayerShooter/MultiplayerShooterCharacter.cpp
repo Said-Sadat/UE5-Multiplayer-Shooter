@@ -107,7 +107,6 @@ void AMultiplayerShooterCharacter::PostInitializeComponents()
 void AMultiplayerShooterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
 	Health = MaxHealth;
 
 	ShooterPlayerController = Cast<AShooterPlayerController>(Controller);
@@ -119,18 +118,16 @@ void AMultiplayerShooterCharacter::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 			IsInputSetup = true;
 		}
-
-		UpdateHUDHealth();
 	}
-	
+
 	if(HasAuthority())
 	{
+		SpawnDefaultWeapon();
 		OnTakeAnyDamage.AddDynamic(this, &ThisClass::ReceiveDamage);
 	}
 
-	SpawnDefaultWeapon();
-	//UpdateUIAmmo();
-	
+	UpdateUIAmmo();
+	UpdateHUDHealth();
 }
 
 void AMultiplayerShooterCharacter::Tick(float DeltaSeconds)
@@ -153,6 +150,28 @@ void AMultiplayerShooterCharacter::Tick(float DeltaSeconds)
 	AimOffset(DeltaSeconds);
 	HideCloseCharacter();
 	PollInit();
+
+}
+
+void AMultiplayerShooterCharacter::PollInit()
+{
+	if(ShooterPlayerState == nullptr)
+	{
+		ShooterPlayerState = GetPlayerState<AShooterPlayerState>();
+		if(ShooterPlayerState)
+		{
+			ShooterPlayerState->AddToScore(0);
+			ShooterPlayerState->AddToDeaths(0);
+		}
+	}
+	
+	
+	ShooterPlayerController = ShooterPlayerController == nullptr ? Cast<AShooterPlayerController>(Controller) : ShooterPlayerController;
+	if(ShooterPlayerController)
+	{
+		UpdateUIAmmo();
+		UpdateHUDHealth();
+	}
 }
 
 // Input
@@ -173,7 +192,7 @@ void AMultiplayerShooterCharacter::SetupPlayerInputComponent(UInputComponent* Pl
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ThisClass::FireButtonDown);
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &ThisClass::FireButtonReleased);
 
-		EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Triggered, this, &ThisClass::Equip);
+		EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Started, this, &ThisClass::Equip);
 		EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &ThisClass::CrouchButtonPressed);
 
 		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Triggered, this, &ThisClass::Reload);
@@ -256,14 +275,7 @@ void AMultiplayerShooterCharacter::Equip(const FInputActionValue& Value)
 {
 	if(Combat)
 	{
-		if(HasAuthority())
-		{
-			Combat->EquipWeapon(OverlappingWeapon);
-		}
-		else
-		{
-			ServerEquipButtonPressed();
-		}
+		ServerEquipButtonPressed();
 	}
 }
 
@@ -320,19 +332,6 @@ void AMultiplayerShooterCharacter::Reload()
 		Combat->Reload();
 }
 
-void AMultiplayerShooterCharacter::PollInit()
-{
-	if(ShooterPlayerState == nullptr)
-	{
-		ShooterPlayerState = GetPlayerState<AShooterPlayerState>();
-		if(ShooterPlayerState)
-		{
-			ShooterPlayerState->AddToScore(0);
-			ShooterPlayerState->AddToDeaths(0);
-		}
-	}
-}
-
 void AMultiplayerShooterCharacter::UpdateUIAmmo()
 {
 	ShooterPlayerController = ShooterPlayerController == nullptr ? Cast<AShooterPlayerController>(Controller) : ShooterPlayerController;
@@ -340,6 +339,7 @@ void AMultiplayerShooterCharacter::UpdateUIAmmo()
 	{
 		ShooterPlayerController->SetUIWeaponAmmo(Combat->EquippedWeapon->GetAmmo());
 		ShooterPlayerController->SetUICarriedAmmo(Combat->CarriedAmmo);
+		UE_LOG(LogTemp,Warning, TEXT("BOB %s"), *GetName());
 	}
 }
 
@@ -381,14 +381,12 @@ void AMultiplayerShooterCharacter::SpawnDefaultWeapon()
 {
 	AShooterGameMode* ShooterGameMode = Cast<AShooterGameMode>(UGameplayStatics::GetGameMode(this));
 	UWorld* World = GetWorld();
-	UE_LOG(LogTemp, Warning, TEXT("BOB123"));
 	if(/*ShooterGameMode &&*/ World && !IsDead && DefaultWeaponClass)
 	{
 		AWeapon* StartingWeapon = World->SpawnActor<AWeapon>(DefaultWeaponClass);
 		if(Combat)
 		{
 			Combat->EquipWeapon(StartingWeapon);
-			UE_LOG(LogTemp, Warning, TEXT("BOB"));
 		}
 	}
 }
@@ -630,7 +628,15 @@ void AMultiplayerShooterCharacter::ServerEquipButtonPressed_Implementation()
 {
 	if(Combat)
 	{
-		Combat->EquipWeapon(OverlappingWeapon);
+		if(OverlappingWeapon)
+			Combat->EquipWeapon(OverlappingWeapon);
+		else
+		{
+			if(Combat->ShouldSwapWeapon())
+			{
+				Combat->SwapWeapon();
+			}
+		}
 	}
 }
 

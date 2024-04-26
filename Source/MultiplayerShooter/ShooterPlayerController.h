@@ -25,6 +25,11 @@ class MULTIPLAYERSHOOTER_API AShooterPlayerController : public APlayerController
 	uint32 CountdownInt = 0;
 	bool InitializeCharacterHUD = false;
 	float HUDHealth, HUDMaxHealth, HUDScore, HUDDeaths, HUDDiveCount;
+	bool InitializeDiveCount = false;
+	float HUDCarriedAmmo;
+	bool InitializeCarriedAmmo = false;
+	float HUDWeaponAmmo;
+	bool InitializeWeaponAmmo = false;
 
 	UPROPERTY(ReplicatedUsing = OnRep_MatchState)
 	FName MatchState;

@@ -3,6 +3,7 @@
 
 #include "ShooterPlayerController.h"
 #include "MultiplayerShooterCharacter.h"
+#include "Components/DivingComponent.h"
 #include "Components/TextBlock.h"
 #include "Kismet/GameplayStatics.h"
 #include "MultiplayerShooter/GameMode/ShooterGameMode.h"
@@ -207,9 +208,13 @@ void AShooterPlayerController::PollInit()
 				SetUIHealth(HUDHealth, HUDMaxHealth);
 				SetUIScore(HUDScore);
 				SetUIDeathCount(HUDDeaths);
+				SetUIDiveCount(HUDDiveCount);
+				SetUICarriedAmmo(HUDCarriedAmmo);
+				SetUIWeaponAmmo(HUDWeaponAmmo);
 			}
 		}
 	}
+	
 }
 
 void AShooterPlayerController::HandleHasMatchStarted()
@@ -247,6 +252,8 @@ void AShooterPlayerController::OnPossess(APawn* InPawn)
 	if(ShooterCharacter)
 	{
 		SetUIHealth(ShooterCharacter->GetHealth(), ShooterCharacter->GetMaxHealth());
+		ShooterCharacter->GetDivingComponent()->SetOwnerController(this);
+		ShooterCharacter->GetDivingComponent()->SetDiveUI();
 	}
 }
 
@@ -359,6 +366,11 @@ void AShooterPlayerController::SetUIWeaponAmmo(int32 Ammo)
 		if(ShooterHUD->GetCharacterHUD()->WeaponAmmoAmount != nullptr)
 			ShooterHUD->GetCharacterHUD()->WeaponAmmoAmount->SetText(FText::FromString(AmmoText));
 	}
+	else
+	{
+		InitializeWeaponAmmo = true;
+		HUDWeaponAmmo = Ammo;
+	}
 }
 
 void AShooterPlayerController::SetUICarriedAmmo(int32 CarriedAmmo)
@@ -373,6 +385,11 @@ void AShooterPlayerController::SetUICarriedAmmo(int32 CarriedAmmo)
 	{
 		FString AmmoText = FString::Printf(TEXT("/ %d"), CarriedAmmo);
 		ShooterHUD->GetCharacterHUD()->CarriedAmmoAmount->SetText(FText::FromString(AmmoText));
+	}
+	else
+	{
+		InitializeCarriedAmmo = true;
+		HUDCarriedAmmo = CarriedAmmo;
 	}
 }
 

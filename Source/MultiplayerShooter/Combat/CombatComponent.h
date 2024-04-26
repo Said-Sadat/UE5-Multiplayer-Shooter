@@ -29,12 +29,16 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE AWeapon* GetEquippedWeapon() const { return EquippedWeapon; }
 	
-	void EquipWeapon(AWeapon* WeaponToEquip);
-	void Reload();
-	void PickupAmmo(EWeaponType WeaponType, int32 AmmoAmount);
-	
 	UFUNCTION(BlueprintCallable)
 	void FinishReloading();
+
+	void EquipWeapon(AWeapon* WeaponToEquip);
+	void SwapWeapon();
+	void Reload();
+	void PickupAmmo(EWeaponType WeaponType, int32 AmmoAmount);
+
+	bool ShouldSwapWeapon();
+	
 	
 protected:
 	// Called when the game starts
@@ -47,6 +51,9 @@ protected:
 	UFUNCTION()
 	void OnRep_EquippedWeapon();
 
+	UFUNCTION()
+	void OnRep_SecondaryWeapon();
+
 	void Fire();
 	void FireButtonPressed(bool isPressed);
 
@@ -58,6 +65,15 @@ protected:
 
 	UFUNCTION(Server, Reliable)
 	void ServerRPCReload();
+
+	void AttachActorToRightHand(AWeapon* WeaponToEquip);
+	void AttachActorToBackPack(AWeapon* WeaponToEquip);
+	void DropEquippedWeapon();
+	void UpdateCarriedAmmo();
+	void PlayEquipWeaponSound(AWeapon* WeaponToEquip);
+	void ReloadEmptyWeapon();
+	void EquipPrimaryWeapon(AWeapon* WeaponToEquip);
+	void EquipSecondaryWeapon(AWeapon* WeaponToEquip);
 
 	void HandleReload();
 	int32 AmountToReload();
@@ -79,6 +95,9 @@ private:
 	
 	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
 	AWeapon* EquippedWeapon;
+
+	UPROPERTY(ReplicatedUsing = OnRep_SecondaryWeapon)
+	AWeapon* SecondaryWeapon;
 
 	UPROPERTY(EditAnywhere)
 	float BaseWalkSpeed;
