@@ -57,6 +57,12 @@ protected:
 
 	float TimeSyncRunningTime = 0.f;
 
+	UPROPERTY(ReplicatedUsing = OnRep_ShowTeamScores)
+	bool bShowTeamScores = false;
+
+	UFUNCTION()
+	void OnRep_ShowTeamScores();
+
 	void CheckTimeSync(float deltaTime);
 
 	UFUNCTION(Server, Reliable)

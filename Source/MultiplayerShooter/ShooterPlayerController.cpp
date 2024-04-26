@@ -32,6 +32,14 @@ void AShooterPlayerController::Tick(float DeltaSeconds)
 	PollInit();
 }
 
+void AShooterPlayerController::OnRep_ShowTeamScores()
+{
+	if(bShowTeamScores)
+		InitTeamScores();
+	else
+		HideTeamScores();
+}
+
 void AShooterPlayerController::CheckTimeSync(float deltaTime)
 {
 	TimeSyncRunningTime += deltaTime;
@@ -82,6 +90,7 @@ void AShooterPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProper
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AShooterPlayerController, MatchState);
+	DOREPLIFETIME(AShooterPlayerController, bShowTeamScores);
 }
 
 void AShooterPlayerController::OnRep_MatchState()
@@ -164,7 +173,6 @@ void AShooterPlayerController::HideTeamScores()
 	ShooterHUD = ShooterHUD == nullptr ? Cast<AShooterHUD>(GetHUD()) : ShooterHUD;
 	if(ShooterHUD)
 	{
-		ShooterHUD->GetCharacterHUD()->RemoveFromParent();
 		bool IsHudValid = ShooterHUD->GetCharacterHUD() &&
 			ShooterHUD->GetCharacterHUD()->RedTeamScore &&
 			ShooterHUD->GetCharacterHUD()->BlueTeamScore;
@@ -182,7 +190,6 @@ void AShooterPlayerController::InitTeamScores()
 	ShooterHUD = ShooterHUD == nullptr ? Cast<AShooterHUD>(GetHUD()) : ShooterHUD;
 	if(ShooterHUD)
 	{
-		ShooterHUD->GetCharacterHUD()->RemoveFromParent();
 		bool IsHudValid = ShooterHUD->GetCharacterHUD() &&
 			ShooterHUD->GetCharacterHUD()->RedTeamScore &&
 			ShooterHUD->GetCharacterHUD()->BlueTeamScore;
@@ -203,7 +210,6 @@ void AShooterPlayerController::SetUIRedTeamScore(int32 RedScore)
 	ShooterHUD = ShooterHUD == nullptr ? Cast<AShooterHUD>(GetHUD()) : ShooterHUD;
 	if(ShooterHUD)
 	{
-		ShooterHUD->GetCharacterHUD()->RemoveFromParent();
 		bool IsHudValid = ShooterHUD->GetCharacterHUD() &&
 			ShooterHUD->GetCharacterHUD()->RedTeamScore;
 		
@@ -220,7 +226,6 @@ void AShooterPlayerController::SetUIBlueTeamScore(int32 BlueScore)
 	ShooterHUD = ShooterHUD == nullptr ? Cast<AShooterHUD>(GetHUD()) : ShooterHUD;
 	if(ShooterHUD)
 	{
-		ShooterHUD->GetCharacterHUD()->RemoveFromParent();
 		bool IsHudValid = ShooterHUD->GetCharacterHUD() &&
 			ShooterHUD->GetCharacterHUD()->BlueTeamScore;
 		
@@ -292,6 +297,9 @@ void AShooterPlayerController::PollInit()
 
 void AShooterPlayerController::HandleHasMatchStarted(bool bTeamsMatch)
 {
+	if(HasAuthority())
+		bShowTeamScores = bTeamsMatch;
+	
 	ShooterHUD = ShooterHUD == nullptr ? Cast<AShooterHUD>(GetHUD()) : ShooterHUD;
 	if(ShooterHUD)
 	{
@@ -301,10 +309,12 @@ void AShooterPlayerController::HandleHasMatchStarted(bool bTeamsMatch)
 		if(ShooterHUD->GetAnnouncement())
 			ShooterHUD->GetAnnouncement()->SetVisibility(ESlateVisibility::Hidden);
 
-		/*if(bTeamsMatch)
+		if(!HasAuthority()) return;
+		
+		if(bTeamsMatch)
 			InitTeamScores();
 		else
-			HideTeamScores();*/
+			HideTeamScores();
 	}
 }
 
