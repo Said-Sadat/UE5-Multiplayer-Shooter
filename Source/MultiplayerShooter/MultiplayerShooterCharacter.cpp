@@ -175,6 +175,10 @@ void AMultiplayerShooterCharacter::Tick(float DeltaSeconds)
 
 void AMultiplayerShooterCharacter::PollInit()
 {
+
+	if(ShooterPlayerController)
+		if(ShooterPlayerController->GetMatchState() != MatchState::InProgress) return;
+	
 	if(ShooterPlayerState == nullptr)
 	{
 		ShooterPlayerState = GetPlayerState<AShooterPlayerState>();

@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "GameMode/ShooterGameMode.h"
 #include "ShooterPlayerController.generated.h"
 
+class AShooterPlayerState;
 /**
  * 
  */
@@ -63,6 +65,9 @@ protected:
 	UFUNCTION()
 	void OnRep_ShowTeamScores();
 
+	FString GetInfoText(const TArray<AShooterPlayerState*>& Players);
+	FString GetTeamsInfoText(class AMainGameState* ShooterGameState);
+
 	void CheckTimeSync(float deltaTime);
 
 	UFUNCTION(Server, Reliable)
@@ -92,4 +97,6 @@ public:
 	
 	void OnMatchStateSet(FName State, bool bTeamsMatch = false);
 	void HandleCooldown();
+
+	FORCEINLINE FName GetMatchState() const { return MatchState; }
 };
