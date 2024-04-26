@@ -350,8 +350,7 @@ void AShooterPlayerController::PollInit()
 
 void AShooterPlayerController::HandleHasMatchStarted(bool bTeamsMatch)
 {
-	if(HasAuthority())
-		bShowTeamScores = bTeamsMatch;
+	bShowTeamScores = bTeamsMatch;
 	
 	ShooterHUD = ShooterHUD == nullptr ? Cast<AShooterHUD>(GetHUD()) : ShooterHUD;
 	if(ShooterHUD)
@@ -362,7 +361,7 @@ void AShooterPlayerController::HandleHasMatchStarted(bool bTeamsMatch)
 		if(ShooterHUD->GetAnnouncement())
 			ShooterHUD->GetAnnouncement()->SetVisibility(ESlateVisibility::Hidden);
 
-		if(!HasAuthority()) return;
+		//if(!HasAuthority()) return;
 		
 		if(bTeamsMatch)
 			InitTeamScores();

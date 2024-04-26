@@ -17,6 +17,9 @@ class MULTIPLAYERSHOOTER_API ALobbyGameMode : public AGameModeBase
 	UPROPERTY(EditAnywhere)
 	int32 MinPlayers = 2;
 
+	FString MatchType;
+	class UMultiplayerSessionsSubsystem* Subsystem;
+
 public:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 	virtual void Logout(AController* Exiting) override;

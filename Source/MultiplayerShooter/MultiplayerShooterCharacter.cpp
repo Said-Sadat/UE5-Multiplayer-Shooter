@@ -406,7 +406,7 @@ void AMultiplayerShooterCharacter::SpawnDefaultWeapon()
 {
 	ShooterGameMode = ShooterGameMode == nullptr ? GetWorld()->GetAuthGameMode<AShooterGameMode>() : ShooterGameMode;
 	UWorld* World = GetWorld();
-	if(/*ShooterGameMode &&*/ World && !IsDead && DefaultWeaponClass)
+	if(ShooterGameMode && World && !IsDead && DefaultWeaponClass)
 	{
 		AWeapon* StartingWeapon = World->SpawnActor<AWeapon>(DefaultWeaponClass);
 		if(Combat)
