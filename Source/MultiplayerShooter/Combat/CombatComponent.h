@@ -55,6 +55,7 @@ protected:
 	void OnRep_SecondaryWeapon();
 
 	void Fire();
+	void LocalFire(const FVector_NetQuantize& TraceHitTarget);
 	void FireButtonPressed(bool isPressed);
 
 	UFUNCTION(Server, Reliable)

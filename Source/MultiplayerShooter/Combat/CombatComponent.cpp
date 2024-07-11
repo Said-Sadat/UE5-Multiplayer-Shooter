@@ -113,7 +113,32 @@ void UCombatComponent::Fire()
 	{
 		bCanFire = false;
 		ServerFire(HitTarget.ImpactPoint);
+		LocalFire(HitTarget.ImpactPoint);
 		StartFireTimer();
+	}
+}
+
+void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
+{
+	MultiCastFire(TraceHitTarget);
+}
+
+void UCombatComponent::MultiCastFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
+{
+	if(Character && Character->IsLocallyControlled() && !Character->HasAuthority())
+		return;
+
+	LocalFire(TraceHitTarget);
+}
+
+void UCombatComponent::LocalFire(const FVector_NetQuantize& TraceHitTarget)
+{
+	if(EquippedWeapon == nullptr) return;
+	
+	if(Character && CombatState == ECombatState::ECS_Unoccupied)
+	{
+		Character->PlayFireMontage(IsFireButtonPressed);
+		EquippedWeapon->Fire(TraceHitTarget);
 	}
 }
 
@@ -250,22 +275,6 @@ bool UCombatComponent::ShouldSwapWeapon()
 	return EquippedWeapon != nullptr && SecondaryWeapon != nullptr;
 }
 
-void UCombatComponent::ServerFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
-{
-	MultiCastFire(TraceHitTarget);
-}
-
-void UCombatComponent::MultiCastFire_Implementation(const FVector_NetQuantize& TraceHitTarget)
-{
-	if(EquippedWeapon == nullptr) return;
-	
-	if(Character && CombatState == ECombatState::ECS_Unoccupied)
-	{
-		Character->PlayFireMontage(IsFireButtonPressed);
-		EquippedWeapon->Fire(TraceHitTarget);
-	}
-}
-
 void UCombatComponent::ServerSetAiming_Implementation(bool isAiming)
 {
 	bIsAiming = isAiming;
@@ -355,6 +364,8 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 
 void UCombatComponent::SwapWeapon()
 {
+	if(CombatState != ECombatState::ECS_Unoccupied) return;
+	
 	AWeapon* TempWeapon = EquippedWeapon;
 	EquippedWeapon = SecondaryWeapon;
 	SecondaryWeapon = TempWeapon;

@@ -50,17 +50,14 @@ void AWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 
+	AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	AreaSphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnSphereOverlap);
+	AreaSphere->OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnSphereEndOverlap);
+
 	if(PickupWidget)
 	{
 		PickupWidget->SetVisibility(false);
-	}
-
-	if(HasAuthority())
-	{
-		AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		AreaSphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-		AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnSphereOverlap);
-		AreaSphere->OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnSphereEndOverlap);
 	}
 }
 
@@ -206,7 +203,9 @@ void AWeapon::Fire(const FVector& HitTarget)
 	if(FireAnimation)
 		WeaponMesh->PlayAnimation(FireAnimation, false);
 
-	SpendRound();
+
+	if(HasAuthority())
+		SpendRound();
 }
 
 void AWeapon::AddAmmo(int32 AmmoToAdd)
