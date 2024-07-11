@@ -32,6 +32,15 @@ class MULTIPLAYERSHOOTER_API AShooterPlayerController : public APlayerController
 	bool InitializeCarriedAmmo = false;
 	float HUDWeaponAmmo;
 	bool InitializeWeaponAmmo = false;
+	
+	UPROPERTY(EditAnywhere)
+	float HighPingDuration = 5.0f;
+	UPROPERTY(EditAnywhere)
+	float CheckPingFrequency = 20.f;
+	UPROPERTY(EditAnywhere)
+	float HighPingThreshold = 50.f;
+	float PingAnimationRunningTime = 0.f;
+	float HighPingRunningTime = 0.0f;
 
 	UPROPERTY(ReplicatedUsing = OnRep_MatchState)
 	FName MatchState;
@@ -75,6 +84,10 @@ protected:
 
 	UFUNCTION(Client, Reliable)
 	void ClientJoinMidGame(FName StateOfMatch, float Warmup, float Match, float Cooldown, float StartingTime, bool isTeamMatch);
+
+	void HighPingWarning();
+	void StopHighPingWarning();
+	void CheckPing(float DeltaSeconds);
 
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;

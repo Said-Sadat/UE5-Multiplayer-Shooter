@@ -4,6 +4,7 @@
 #include "ShooterPlayerController.h"
 #include "MultiplayerShooterCharacter.h"
 #include "Components/DivingComponent.h"
+#include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Kismet/GameplayStatics.h"
 #include "MultiplayerShooter/GameMode/ShooterGameMode.h"
@@ -14,6 +15,7 @@
 #include "PlayerState/ShooterPlayerState.h"
 #include "UI/Announcement.h"
 #include "MultiplayerShooter/Announcement.h"
+#include "Components/Image.h"
 
 void AShooterPlayerController::BeginPlay()
 {
@@ -31,6 +33,64 @@ void AShooterPlayerController::Tick(float DeltaSeconds)
 	SetHUDTime();
 	CheckTimeSync(DeltaSeconds);
 	PollInit();
+	CheckPing(DeltaSeconds);
+}
+
+void AShooterPlayerController::CheckPing(float DeltaSeconds)
+{
+
+	if(PlayerState)
+	{
+		float currentping = PlayerState->GetPingInMilliseconds();
+
+		if(ShooterHUD && ShooterHUD->GetCharacterHUD() && ShooterHUD->GetCharacterHUD()->PingText)
+		{
+			FString PingText = FString::Printf(TEXT("%d ms"), FMath::FloorToInt(currentping));
+			ShooterHUD->GetCharacterHUD()->PingText->SetText(FText::FromString(PingText));
+		}
+
+		if(currentping > HighPingThreshold)
+		{
+			HighPingWarning();
+		}
+		else
+		{
+			StopHighPingWarning();
+		}
+	}
+	/*
+	HighPingRunningTime += DeltaSeconds;
+	if(HighPingRunningTime > CheckPingFrequency)
+	{
+		//PlayerState = PlayerState == nullptr ? GetPlayerState<APlayerState>() : PlayerState;
+		if(!PlayerState)
+			PlayerState = GetPlayerState<APlayerState>();
+
+		if(PlayerState)
+		{
+			if(PlayerState->GetPingInMilliseconds() > HighPingThreshold)
+			{
+				HighPingWarning();
+				PingAnimationRunningTime = 0.f;
+			}
+		}
+
+		HighPingRunningTime = 0.f;
+	}
+
+	bool bHighPingAnimationPlaying = ShooterHUD &&
+		ShooterHUD->GetCharacterHUD() &&
+			ShooterHUD->GetCharacterHUD()->HighPingAnimation &&
+				ShooterHUD->GetCharacterHUD()->IsAnimationPlaying(ShooterHUD->GetCharacterHUD()->HighPingAnimation);
+
+	if(bHighPingAnimationPlaying)
+	{
+		PingAnimationRunningTime += DeltaSeconds;
+
+		if(PingAnimationRunningTime > HighPingDuration)
+			StopHighPingWarning();
+	}
+	*/
 }
 
 void AShooterPlayerController::OnRep_ShowTeamScores()
@@ -85,6 +145,39 @@ void AShooterPlayerController::ClientJoinMidGame_Implementation(FName StateOfMat
 	if(ShooterHUD && MatchState == MatchState::WaitingToStart)
 	{
 		ShooterHUD->AddAnnouncement();
+	}
+}
+
+void AShooterPlayerController::HighPingWarning()
+{
+	ShooterHUD = ShooterHUD == nullptr ? Cast<AShooterHUD>(GetHUD()) : ShooterHUD;
+	bool HUDValid = ShooterHUD &&
+		ShooterHUD->GetCharacterHUD() &&
+		ShooterHUD->GetCharacterHUD()->HighPingImage &&
+		ShooterHUD->GetCharacterHUD()->HighPingAnimation;
+
+	if(HUDValid)
+	{
+		ShooterHUD->GetCharacterHUD()->HighPingImage->SetRenderOpacity(1.0f);
+		ShooterHUD->GetCharacterHUD()->PlayAnimation(ShooterHUD->GetCharacterHUD()->HighPingAnimation, 0.f, 5);
+	}
+}
+
+void AShooterPlayerController::StopHighPingWarning()
+{
+	ShooterHUD = ShooterHUD == nullptr ? Cast<AShooterHUD>(GetHUD()) : ShooterHUD;
+	bool HUDValid = ShooterHUD &&
+		ShooterHUD->GetCharacterHUD() &&
+		ShooterHUD->GetCharacterHUD()->HighPingImage &&
+		ShooterHUD->GetCharacterHUD()->HighPingAnimation;
+
+	if(HUDValid)
+	{
+		ShooterHUD->GetCharacterHUD()->HighPingImage->SetRenderOpacity(0.f);
+		if(ShooterHUD->GetCharacterHUD()->IsAnimationPlaying(ShooterHUD->GetCharacterHUD()->HighPingAnimation))
+		{
+			ShooterHUD->GetCharacterHUD()->StopAnimation(ShooterHUD->GetCharacterHUD()->HighPingAnimation);
+		}
 	}
 }
 

@@ -40,7 +40,16 @@ public:
 	UTextBlock* MatchTimerText;
 
 	UPROPERTY(meta = (BindWidget))
+	UTextBlock* PingText;
+
+	UPROPERTY(meta = (BindWidget))
 	UTextBlock* CarriedAmmoAmount;
+
+	UPROPERTY(meta = (BindWidget))
+	class UImage* HighPingImage;
+
+	UPROPERTY(meta = (BindWidgetAnim), Transient)
+	UWidgetAnimation* HighPingAnimation;
 
 	void SetHealthBarPercent(float Health, float MaxHealth);
 	void SetDiveCount(int count);
