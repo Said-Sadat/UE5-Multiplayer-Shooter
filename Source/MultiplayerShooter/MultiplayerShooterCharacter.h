@@ -86,6 +86,8 @@ class AMultiplayerShooterCharacter : public ACharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UCombatComponent* Combat;
 	UPROPERTY(VisibleAnywhere)
+	class ULagCompensationComponent* LagCompensation;
+	UPROPERTY(VisibleAnywhere)
 	class UDivingComponent* DivingComponent;
 	UPROPERTY(Replicated)
 	bool bIsAiming;
@@ -108,9 +110,73 @@ class AMultiplayerShooterCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, Category = Teams)
 	USkeletalMesh* BlueSkeletalMesh;
 
+	UFUNCTION()
+	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
+	UFUNCTION(Server, Reliable)
+	void ServerEquipButtonPressed();
+	UFUNCTION(BlueprintCallable)
+	float GetYawOffset();
+
+	void HideCloseCharacter();
+	void PlayHitReactMontage();
+
+protected:
+	void Move(const FInputActionValue& Value);
+	void Dive(const FInputActionValue& Value);
+	void Look(const FInputActionValue& Value);
+	void Aim(const FInputActionValue& Value);
+	void FireButtonDown(const FInputActionValue& Value);
+	void FireButtonReleased(const FInputActionValue& Value);
+	void Equip(const FInputActionValue& Value);
+	void CrouchButtonPressed(const FInputActionValue& Value);
+	void AimOffset(float DeltaTime);
+	void Reload();
+	void PollInit();
+	
+	UFUNCTION()
+	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);
+			
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void BeginPlay();
+	virtual void Tick(float DeltaSeconds) override;
+
 public:
 	AMultiplayerShooterCharacter();
 
+	// Hit Boxes:
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* head;
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* pelvis;
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* spine_02;
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* spine_03;
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* upperarm_r;
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* upperarm_l;
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* lowerarm_r;
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* lowerarm_l;
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* hand_l;
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* hand_r;
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* thigh_l;
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* thigh_r;
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* calve_l;
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* calve_r;
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* foot_l;
+	UPROPERTY(EditAnywhere)
+	UBoxComponent* foot_r;
+	
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE class UDivingComponent* GetDivingComponent() const { return DivingComponent; }
 	UFUNCTION(BlueprintCallable)
@@ -130,13 +196,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE FVector2D GetMovementVector() const { return MovementVector; }
 
-	UFUNCTION(BlueprintImplementableEvent)
-	void ShowSniperScopeWidget(bool bShowScope);
-
 	ECombatState GetCombatState() const;
-
-	UFUNCTION(BlueprintCallable)
-	bool UseFABRIK();
 
 	void SpawnDefaultWeapon();
 	void SetOverlappingWeapon(AWeapon* Weapon);
@@ -144,58 +204,24 @@ public:
 	void PlayReloadMontage();
 	void PlayDeathMontage();
 	void UpdateUIAmmo();
-
 	void Dead();
+	void SetTeamColour(ETeam Team);
+	bool IsLocallyReloading();
+	
+	UFUNCTION(BlueprintImplementableEvent)
+	void ShowSniperScopeWidget(bool bShowScope);
+	UFUNCTION(BlueprintCallable)
+	bool UseFABRIK();
 	UFUNCTION(NetMulticast, Reliable)
 	void MultiCastDead();
-	
 	UFUNCTION(BlueprintCallable)
 	bool IsWeaponEquipped();
-	
 	UFUNCTION(BlueprintCallable)
 	bool GetIsAiming();
-
 	UFUNCTION(BlueprintCallable)
 	FTransform GetLeftHandTransform();
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PostInitializeComponents() override;
 
-	void SetTeamColour(ETeam Team);
-
-protected:
-	void Move(const FInputActionValue& Value);
-	void Dive(const FInputActionValue& Value);
-	void Look(const FInputActionValue& Value);
-	void Aim(const FInputActionValue& Value);
-	void FireButtonDown(const FInputActionValue& Value);
-	void FireButtonReleased(const FInputActionValue& Value);
-	void Equip(const FInputActionValue& Value);
-	void CrouchButtonPressed(const FInputActionValue& Value);
-	void AimOffset(float DeltaTime);
-	void Reload();
-	void PollInit();
-	
-
-	UFUNCTION()
-	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);
-			
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
-	virtual void BeginPlay();
-	virtual void Tick(float DeltaSeconds) override;
-
-private:
-	UFUNCTION()
-	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
-
-	UFUNCTION(Server, Reliable)
-	void ServerEquipButtonPressed();
-
-	UFUNCTION(BlueprintCallable)
-	float GetYawOffset();
-
-	void HideCloseCharacter();
-	void PlayHitReactMontage();
-	
 };

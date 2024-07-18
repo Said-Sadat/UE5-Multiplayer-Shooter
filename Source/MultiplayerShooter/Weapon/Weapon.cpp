@@ -73,7 +73,6 @@ void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AWeapon, WeaponState);
-	DOREPLIFETIME(AWeapon, Ammo);
 }
 
 void AWeapon::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
@@ -167,17 +166,6 @@ void AWeapon::SetUIAmmo()
 	}
 }
 
-void AWeapon::SpendRound()
-{
-	Ammo = FMath::Clamp(Ammo - 1, 0, MagCapacity);
-	SetUIAmmo();
-}
-
-void AWeapon::OnRep_Ammo()
-{
-	SetUIAmmo();
-}
-
 void AWeapon::OnRep_Owner()
 {
 	Super::OnRep_Owner();
@@ -203,14 +191,44 @@ void AWeapon::Fire(const FVector& HitTarget)
 	if(FireAnimation)
 		WeaponMesh->PlayAnimation(FireAnimation, false);
 
-
-	if(HasAuthority())
-		SpendRound();
+	SpendRound();
 }
 
 void AWeapon::AddAmmo(int32 AmmoToAdd)
 {
-	Ammo = FMath::Clamp(Ammo - AmmoToAdd, 0, MagCapacity);
+	Ammo = FMath::Clamp(Ammo + AmmoToAdd, 0, MagCapacity);
+	SetUIAmmo();
+	ClientAddAmmo(AmmoToAdd);
+}
+
+void AWeapon::SpendRound()
+{
+	Ammo = FMath::Clamp(Ammo - 1, 0, MagCapacity);
+	SetUIAmmo();
+
+	if(HasAuthority())
+	{
+		ClientUpdateAmmo(Ammo);
+	}
+	else
+	{
+		++Sequence;
+	}
+}
+
+void AWeapon::ClientUpdateAmmo_Implementation(int32 ServerAmmo)
+{
+	if(HasAuthority()) return;
+	Ammo = ServerAmmo;
+	--Sequence;
+	Ammo -= Sequence;
+	SetUIAmmo();
+}
+
+void AWeapon::ClientAddAmmo_Implementation(int32 AmmoToAdd)
+{
+	if(HasAuthority()) return;
+	Ammo = FMath::Clamp(Ammo + AmmoToAdd, 0, MagCapacity);
 	SetUIAmmo();
 }
 

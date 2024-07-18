@@ -28,6 +28,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE AWeapon* GetEquippedWeapon() const { return EquippedWeapon; }
+	FORCEINLINE bool GetIsLocallyReloading() const { return bLocallyReloading; }
 	
 	UFUNCTION(BlueprintCallable)
 	void FinishReloading();
@@ -79,7 +80,6 @@ protected:
 	void HandleReload();
 	int32 AmountToReload();
 	void TraceUnderCrosshairs(FHitResult& TraceHitResult);
-	
 
 private:
 	AMultiplayerShooterCharacter* Character;
@@ -91,12 +91,15 @@ private:
 	UFUNCTION()
 	void OnRep_CombatState();
 	
-	UPROPERTY(Replicated)
-	bool bIsAiming;
+	UPROPERTY(ReplicatedUsing = OnRep_Aiming)
+	bool bIsAiming = false;
+	bool bAimButtonPressed = false;
+
+	UFUNCTION()
+	void OnRep_Aiming();
 	
 	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon)
 	AWeapon* EquippedWeapon;
-
 	UPROPERTY(ReplicatedUsing = OnRep_SecondaryWeapon)
 	AWeapon* SecondaryWeapon;
 
@@ -138,6 +141,8 @@ private:
 	int32 StartingShotgunAmmo = 0;
 	UPROPERTY(EditAnywhere)
 	int32 StartingSniperAmmo = 1;
+
+	bool bLocallyReloading = false;
 	
 	void InitializeCarriedAmmo();
 	void UpdateAmmoValues();

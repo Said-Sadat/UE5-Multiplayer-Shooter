@@ -20,6 +20,8 @@
 #include "TimerManager.h"
 #include "Combat/CombatComponent.h"
 #include "Components/DivingComponent.h"
+#include "Components/LagCompensationComponent.h"
+#include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Weapon/WeaponTypes.h"
 #include "MultiplayerShooter/PlayerState/ShooterPlayerState.h"
@@ -73,11 +75,77 @@ AMultiplayerShooterCharacter::AMultiplayerShooterCharacter()
 	Combat = CreateDefaultSubobject<UCombatComponent>(TEXT("Combat Component"));
 	Combat->SetIsReplicated(true);
 
+	LagCompensation = CreateDefaultSubobject<ULagCompensationComponent>(TEXT("Lag Compensation"));
+
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 
 	DivingComponent = CreateDefaultSubobject<UDivingComponent>(TEXT("Diving Component"));
 	DivingComponent->SetIsReplicated(true);
 
+	// Hit box set-up.
+	head = CreateDefaultSubobject<UBoxComponent>(TEXT("head"));
+	head->SetupAttachment(GetMesh(), FName("head"));
+	head->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	pelvis = CreateDefaultSubobject<UBoxComponent>(TEXT("pelvis"));
+	pelvis->SetupAttachment(GetMesh(), FName("pelvis"));
+	pelvis->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	spine_02 = CreateDefaultSubobject<UBoxComponent>(TEXT("spine_02"));
+	spine_02->SetupAttachment(GetMesh(), FName("spine_02"));
+	spine_02->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	spine_03 = CreateDefaultSubobject<UBoxComponent>(TEXT("spine_03"));
+	spine_03->SetupAttachment(GetMesh(), FName("spine_03"));
+	spine_03->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	upperarm_r = CreateDefaultSubobject<UBoxComponent>(TEXT("upperarm_r"));
+	upperarm_r->SetupAttachment(GetMesh(), FName("upperarm_r"));
+	upperarm_r->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	upperarm_l = CreateDefaultSubobject<UBoxComponent>(TEXT("upperarm_l"));
+	upperarm_l->SetupAttachment(GetMesh(), FName("upperarm_l"));
+	upperarm_l->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	lowerarm_r = CreateDefaultSubobject<UBoxComponent>(TEXT("lowerarm_r"));
+	lowerarm_r->SetupAttachment(GetMesh(), FName("lowerarm_r"));
+	lowerarm_r->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	lowerarm_l = CreateDefaultSubobject<UBoxComponent>(TEXT("lowerarm_l"));
+	lowerarm_l->SetupAttachment(GetMesh(), FName("lowerarm_l"));
+	lowerarm_l->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	hand_l = CreateDefaultSubobject<UBoxComponent>(TEXT("hand_l"));
+	hand_l->SetupAttachment(GetMesh(), FName("hand_l"));
+	hand_l->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	hand_r = CreateDefaultSubobject<UBoxComponent>(TEXT("hand_r"));
+	hand_r->SetupAttachment(GetMesh(), FName("hand_r"));
+	hand_r->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	
+	thigh_l = CreateDefaultSubobject<UBoxComponent>(TEXT("thigh_l"));
+	thigh_l->SetupAttachment(GetMesh(), FName("thigh_l"));
+	thigh_l->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	
+	thigh_r = CreateDefaultSubobject<UBoxComponent>(TEXT("thigh_r"));
+	thigh_r->SetupAttachment(GetMesh(), FName("thigh_r"));
+	thigh_r->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	calve_l = CreateDefaultSubobject<UBoxComponent>(TEXT("calve_l"));
+	calve_l->SetupAttachment(GetMesh(), FName("calve_l"));
+	calve_l->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	calve_r = CreateDefaultSubobject<UBoxComponent>(TEXT("calve_r"));
+	calve_r->SetupAttachment(GetMesh(), FName("calve_r"));
+	calve_r->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	foot_l = CreateDefaultSubobject<UBoxComponent>(TEXT("foot_l"));
+	foot_l->SetupAttachment(GetMesh(), FName("foot_l"));
+	foot_l->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	foot_r = CreateDefaultSubobject<UBoxComponent>(TEXT("foot_r"));
+	foot_r->SetupAttachment(GetMesh(), FName("foot_r"));
+	foot_r->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void AMultiplayerShooterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -96,6 +164,13 @@ void AMultiplayerShooterCharacter::PostInitializeComponents()
 
 	if(Combat)
 		Combat->Character = this;
+
+	if(LagCompensation)
+	{
+		LagCompensation->Character = this;
+		if(Controller)
+			LagCompensation->Controller = Cast<AShooterPlayerController>(Controller);
+	}
 
 	if(DivingComponent)
 	{
@@ -122,6 +197,12 @@ void AMultiplayerShooterCharacter::SetTeamColour(ETeam Team)
 			GetMesh()->SetSkeletalMesh(BlueSkeletalMesh);
 		break;
 	}
+}
+
+bool AMultiplayerShooterCharacter::IsLocallyReloading()
+{
+	if(Combat == nullptr) return false;
+	return Combat->GetIsLocallyReloading();
 }
 
 void AMultiplayerShooterCharacter::BeginPlay()

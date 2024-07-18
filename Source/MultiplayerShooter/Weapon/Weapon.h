@@ -93,10 +93,15 @@ private:
 	UPROPERTY(EditAnywhere)
 	float ZoomInterpSpeed = 20.f;
 	
-	UPROPERTY(EditAnywhere, ReplicatedUsing = OnRep_Ammo)
+	UPROPERTY(EditAnywhere)
 	int32 Ammo;
 	UPROPERTY(EditAnywhere)
 	int32 MagCapacity;
+
+
+	// Number of unprocessed server requests for Ammo.
+	// Incremented in SpendRound, decremented in ClientUpdateAmmo.
+	int32 Sequence = 0;
 	
 	UPROPERTY()
 	class AMultiplayerShooterCharacter* OwnerCharacter;
@@ -108,10 +113,14 @@ private:
 	UPROPERTY(EditAnywhere, Category= "Combat")
 	bool IsAutomatic = true;
 
+	UFUNCTION(Client, Reliable)
+	void ClientUpdateAmmo(int32 ServerAmmo);
+
+	UFUNCTION(Client, Reliable)
+	void ClientAddAmmo(int32 AmmoToAdd);
+
 	UFUNCTION()
 	void OnRep_WeaponState();
-	UFUNCTION()
-	void OnRep_Ammo();
 
 	void SpendRound();
 };
