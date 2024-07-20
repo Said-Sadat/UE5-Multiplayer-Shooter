@@ -184,6 +184,7 @@ public:
 	FORCEINLINE class UDivingComponent* GetDivingComponent() const { return DivingComponent; }
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE UCombatComponent* GetCombatComponent() const { return Combat; }
+	FORCEINLINE ULagCompensationComponent* GetLagCompoensationComponent() const { return LagCompensation; }
 	
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
