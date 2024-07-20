@@ -47,9 +47,13 @@ class MULTIPLAYERSHOOTER_API ULagCompensationComponent : public UActorComponent
 protected:
 	virtual void BeginPlay() override;
 
+	void SaveFramePackage(FFramePackage& Package);
+
 public:	
 	ULagCompensationComponent();
 	friend class AMultiplayerShooterCharacter;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+	void ShowFramePackage(const FFramePackage& Package, const FColor& Color);
 		
 };

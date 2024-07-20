@@ -176,6 +176,9 @@ public:
 	UBoxComponent* foot_l;
 	UPROPERTY(EditAnywhere)
 	UBoxComponent* foot_r;
+
+	UPROPERTY()
+	TMap<FName, UBoxComponent*> HitCollisionBoxes;
 	
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE class UDivingComponent* GetDivingComponent() const { return DivingComponent; }
