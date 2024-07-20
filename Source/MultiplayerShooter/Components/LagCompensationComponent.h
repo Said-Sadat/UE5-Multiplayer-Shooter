@@ -52,6 +52,7 @@ class MULTIPLAYERSHOOTER_API ULagCompensationComponent : public UActorComponent
 protected:
 	virtual void BeginPlay() override;
 	void SaveFramePackage(FFramePackage& Package);
+	FFramePackage InterpBetweenFrames(const FFramePackage& OlderFrame, const FFramePackage& YoungerFrame, float HitTime);
 
 public:	
 	ULagCompensationComponent();
