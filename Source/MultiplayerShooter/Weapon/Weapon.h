@@ -53,10 +53,22 @@ public:
 	FORCEINLINE bool GetIsAutomatic() const { return IsAutomatic; }
 	FORCEINLINE int32 GetAmmo() const { return Ammo; }
 	FORCEINLINE int32 GetMagCapacity() const { return MagCapacity; }
+	FORCEINLINE float GetDamage() const { return Damage; }
 	bool IsEmpty();
 	bool IsFull();
 	
 protected:
+	UPROPERTY()
+	class AMultiplayerShooterCharacter* OwnerCharacter;
+	UPROPERTY()
+	class AShooterPlayerController* OwnerController;
+	
+	UPROPERTY(EditAnywhere)
+	float Damage = 20.f;
+
+	UPROPERTY(EditAnywhere)
+	bool bUseServerSideRewind = false;
+	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	virtual void OnWeaponStateSet();
@@ -102,11 +114,6 @@ private:
 	// Number of unprocessed server requests for Ammo.
 	// Incremented in SpendRound, decremented in ClientUpdateAmmo.
 	int32 Sequence = 0;
-	
-	UPROPERTY()
-	class AMultiplayerShooterCharacter* OwnerCharacter;
-	UPROPERTY()
-	class AShooterPlayerController* OwnerController;
 	
 	UPROPERTY(EditAnywhere, Category= "Combat")
 	float FireDelay = .15f;

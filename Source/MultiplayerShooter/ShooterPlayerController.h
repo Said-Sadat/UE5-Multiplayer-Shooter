@@ -20,6 +20,7 @@ class MULTIPLAYERSHOOTER_API AShooterPlayerController : public APlayerController
 	class UCharacterHUD* CharacterHUD;
 	class AShooterGameMode* ShooterGameMode;
 
+	float SingleTripTime = 0.0f;
 	float LevelStartingTime = 0.f;
 	float MatchTime = 0.f;
 	float WarmupTime = 0.f;
@@ -112,4 +113,5 @@ public:
 	void HandleCooldown();
 
 	FORCEINLINE FName GetMatchState() const { return MatchState; }
+	FORCEINLINE float GetSingleTripTime() const { return SingleTripTime; }
 };

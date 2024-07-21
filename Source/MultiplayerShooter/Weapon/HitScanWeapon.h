@@ -26,8 +26,6 @@ class MULTIPLAYERSHOOTER_API AHitScanWeapon : public AWeapon
 
 protected:
 	UPROPERTY(EditAnywhere)
-	float Damage = 20.f;
-	UPROPERTY(EditAnywhere)
 	class UParticleSystem* ImpactParticles;
 	
 	FVector TraceEndWithScatter(const FVector& TraceStart, const FVector& HitTarget);

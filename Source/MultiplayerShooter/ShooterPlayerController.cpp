@@ -473,7 +473,8 @@ void AShooterPlayerController::ClientReportServerTime_Implementation(float TimeO
 	float TimeServerReceivedClientRequest)
 {
 	float RoundTripTime = GetWorld()->GetTimeSeconds() - TimeOfClientRequest;
-	float CurrentServerTime = TimeServerReceivedClientRequest + (RoundTripTime / 2);
+	SingleTripTime = RoundTripTime / 2;
+	float CurrentServerTime = TimeServerReceivedClientRequest + SingleTripTime;
 	ClientServerTimeDelta = CurrentServerTime - GetWorld()->GetTimeSeconds();
 }
 

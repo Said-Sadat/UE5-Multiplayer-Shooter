@@ -34,6 +34,18 @@ struct FFramePackage
 	TMap<FName, FBoxInformation> HitBoxInfo;
 };
 
+USTRUCT(BlueprintType)
+struct FServerSideRewindResult
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	bool bHitConfirmed;
+	
+	UPROPERTY()
+	bool bHeadShot;
+};
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class MULTIPLAYERSHOOTER_API ULagCompensationComponent : public UActorComponent
 {
@@ -53,7 +65,13 @@ protected:
 	virtual void BeginPlay() override;
 	void SaveFramePackage(FFramePackage& Package);
 	FFramePackage InterpBetweenFrames(const FFramePackage& OlderFrame, const FFramePackage& YoungerFrame, float HitTime);
-
+	FServerSideRewindResult ConfirmHit(const FFramePackage& Package, AMultiplayerShooterCharacter* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation);
+	void CacheBoxPositions(AMultiplayerShooterCharacter* HitCharacter, FFramePackage& OutFramePackage);
+	void MoveBoxes(AMultiplayerShooterCharacter* HitCharacter, const FFramePackage& Package);
+	void ResetHitBoxes(AMultiplayerShooterCharacter* HitCharacter, const FFramePackage& Package);
+	void EnableCharacterMeshCollision(AMultiplayerShooterCharacter* HitCharacter, ECollisionEnabled::Type CollisionEnabled);
+	void SaveFramePackage();
+	
 public:	
 	ULagCompensationComponent();
 	
@@ -61,5 +79,8 @@ public:
 	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	void ShowFramePackage(const FFramePackage& Package, const FColor& Color);
-	void ServerSideRewind(class AMultiplayerShooterCharacter* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation, float HitTime);
+	FServerSideRewindResult ServerSideRewind(class AMultiplayerShooterCharacter* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation, float HitTime);
+
+	UFUNCTION(Server, Reliable)
+	void ServerScoreRequest(AMultiplayerShooterCharacter* HitCharacter, const FVector_NetQuantize& TraceStart, const FVector_NetQuantize& HitLocation, float HitTime, class AWeapon* DamageCauser);
 };
