@@ -14,9 +14,6 @@ class MULTIPLAYERSHOOTER_API AProjectile : public AActor
 	UPROPERTY(EditAnywhere)
 	class UBoxComponent* CollisionBox;
 
-	UPROPERTY(VisibleAnywhere)
-	class UProjectileMovementComponent* ProjectileMovementComponent;
-
 	UPROPERTY(EditAnywhere)
 	class UParticleSystem* Tracer;
 
@@ -31,8 +28,20 @@ public:
 	AProjectile();
 	virtual void Tick(float DeltaTime) override;
 	virtual void Destroyed() override;
+	float GetInitialSpeed();
+	void SetDamage(float WeaponDamage);
 
+	// Used with server side rewind.
+	bool bUseServerSideRewind = false;
+	FVector_NetQuantize TraceStart;
+	FVector_NetQuantize100 InitialVelocity;
+
+	FORCEINLINE float GetDamage() const { return Damage; }
+	
 protected:
+	UPROPERTY(VisibleAnywhere)
+	class UProjectileMovementComponent* ProjectileMovementComponent;
+	
 	UPROPERTY(EditAnywhere)
 	float Damage = 20.f;
 	

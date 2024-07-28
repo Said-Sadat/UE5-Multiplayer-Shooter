@@ -211,6 +211,8 @@ public:
 	void Dead();
 	void SetTeamColour(ETeam Team);
 	bool IsLocallyReloading();
+
+	AWeapon* GetEquippedWeapon();
 	
 	UFUNCTION(BlueprintImplementableEvent)
 	void ShowSniperScopeWidget(bool bShowScope);

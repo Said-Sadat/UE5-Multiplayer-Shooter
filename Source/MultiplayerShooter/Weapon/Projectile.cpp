@@ -31,6 +31,19 @@ AProjectile::AProjectile()
 	ProjectileMovementComponent->bRotationFollowsVelocity = true;
 }
 
+float AProjectile::GetInitialSpeed()
+{
+	if(ProjectileMovementComponent)
+		return ProjectileMovementComponent->GetMaxSpeed();
+
+	return 0.f;
+}
+
+void AProjectile::SetDamage(float WeaponDamage)
+{
+	Damage = WeaponDamage;
+}
+
 void AProjectile::BeginPlay()
 {
 	Super::BeginPlay();
