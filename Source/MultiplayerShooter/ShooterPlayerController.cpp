@@ -38,12 +38,14 @@ void AShooterPlayerController::Tick(float DeltaSeconds)
 
 void AShooterPlayerController::CheckPing(float DeltaSeconds)
 {
-
-	if(PlayerState)
+	if(PlayerState && MatchState == MatchState::InProgress)
 	{
 		float currentping = PlayerState->GetPingInMilliseconds();
+		bool bIsHUDValid = ShooterHUD &&
+			ShooterHUD->GetCharacterHUD() &&
+			ShooterHUD->GetCharacterHUD()->PingText;
 
-		if(ShooterHUD && ShooterHUD->GetCharacterHUD() && ShooterHUD->GetCharacterHUD()->PingText)
+		if(bIsHUDValid)
 		{
 			FString PingText = FString::Printf(TEXT("%d ms"), FMath::FloorToInt(currentping));
 			ShooterHUD->GetCharacterHUD()->PingText->SetText(FText::FromString(PingText));
@@ -58,39 +60,6 @@ void AShooterPlayerController::CheckPing(float DeltaSeconds)
 			StopHighPingWarning();
 		}
 	}
-	/*
-	HighPingRunningTime += DeltaSeconds;
-	if(HighPingRunningTime > CheckPingFrequency)
-	{
-		//PlayerState = PlayerState == nullptr ? GetPlayerState<APlayerState>() : PlayerState;
-		if(!PlayerState)
-			PlayerState = GetPlayerState<APlayerState>();
-
-		if(PlayerState)
-		{
-			if(PlayerState->GetPingInMilliseconds() > HighPingThreshold)
-			{
-				HighPingWarning();
-				PingAnimationRunningTime = 0.f;
-			}
-		}
-
-		HighPingRunningTime = 0.f;
-	}
-
-	bool bHighPingAnimationPlaying = ShooterHUD &&
-		ShooterHUD->GetCharacterHUD() &&
-			ShooterHUD->GetCharacterHUD()->HighPingAnimation &&
-				ShooterHUD->GetCharacterHUD()->IsAnimationPlaying(ShooterHUD->GetCharacterHUD()->HighPingAnimation);
-
-	if(bHighPingAnimationPlaying)
-	{
-		PingAnimationRunningTime += DeltaSeconds;
-
-		if(PingAnimationRunningTime > HighPingDuration)
-			StopHighPingWarning();
-	}
-	*/
 }
 
 void AShooterPlayerController::OnRep_ShowTeamScores()
